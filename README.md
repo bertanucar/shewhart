@@ -53,8 +53,7 @@ general statistics (see `statsmodels`, `pingouin`), GUIs.
 
 ## Author
 
-Built by [Bertan Ucar](https://github.com/bertanucar) — PhD researcher in
-AI-driven quality engineering at Tsinghua University.
+Built by [Bertan Ucar](https://github.com/bertanucar) — PhD researcher @ Tsinghua University.
 
 ## License
 
