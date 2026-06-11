@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "shewhart"
 version = "0.1.0.dev0"
-description = "Statistical process control (SPC) for Python: control charts, process capability, and measurement systems analysis. Validated, pandas-native, automation-first."
+description = "The statistical process control library for Python: control charts, capability analysis, and measurement systems analysis, validated against published reference values."
 readme = "README.md"
 license = { text = "MIT" }
 authors = [{ name = "Bertan Ucar" }]

@@ -18,12 +18,16 @@ from . import _constants as constants
 from ._registry import available, chart
 from ._result import Baseline, Result, Signal
 from ._version import __version__
-from .charts import imr, xbar_r, xbar_s
+from .charts import c_chart, imr, np_chart, p_chart, u_chart, xbar_r, xbar_s
 
 __all__ = [
     "imr",
     "xbar_r",
     "xbar_s",
+    "p_chart",
+    "np_chart",
+    "c_chart",
+    "u_chart",
     "chart",
     "available",
     "Result",

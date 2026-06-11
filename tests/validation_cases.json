@@ -59,6 +59,65 @@
         "s_ucl": 4.619573742182559
       },
       "tol": 1e-9
+    },
+    {
+      "id": "p_chart-hand-001",
+      "chart": "p_chart",
+      "source": "Hand derivation; formulas per Montgomery 8th ed. ch. 7.2",
+      "derivation": "defectives=[2,3,1,4,2], n=50 each: pbar=12/250=0.048; sigma=sqrt(pbar*(1-pbar)/50); UCL=pbar+3*sigma; LCL=max(0, pbar-3*sigma)=0 (clamped).",
+      "inputs": {
+        "frame": { "d": [2, 3, 1, 4, 2], "n": [50, 50, 50, 50, 50] },
+        "kwargs": { "defectives": "d", "size": "n", "rules": "none" }
+      },
+      "expected": {
+        "p_center": 0.048,
+        "p_ucl": 0.13869332941291768,
+        "p_lcl": 0.0
+      },
+      "tol": 1e-9
+    },
+    {
+      "id": "np_chart-hand-001",
+      "chart": "np_chart",
+      "source": "Hand derivation; formulas per Montgomery 8th ed. ch. 7.2.4",
+      "derivation": "Same defectives, n=50: center=n*pbar=2.4; UCL=2.4+3*sqrt(2.4*(1-0.048)); LCL clamped to 0.",
+      "inputs": {
+        "frame": { "d": [2, 3, 1, 4, 2] },
+        "kwargs": { "defectives": "d", "size": 50, "rules": "none" }
+      },
+      "expected": {
+        "np_center": 2.4,
+        "np_ucl": 6.934666470645883,
+        "np_lcl": 0.0
+      },
+      "tol": 1e-9
+    },
+    {
+      "id": "c_chart-hand-001",
+      "chart": "c_chart",
+      "source": "Hand derivation; formulas per Montgomery 8th ed. ch. 7.3.1",
+      "derivation": "defects=[3,2,4,1,3]: cbar=13/5=2.6; UCL=cbar+3*sqrt(cbar); LCL=max(0, cbar-3*sqrt(cbar))=0.",
+      "inputs": { "data": [3, 2, 4, 1, 3], "kwargs": { "rules": "none" } },
+      "expected": {
+        "c_center": 2.6,
+        "c_ucl": 7.437354648979131,
+        "c_lcl": 0.0
+      },
+      "tol": 1e-9
+    },
+    {
+      "id": "u_chart-hand-001",
+      "chart": "u_chart",
+      "source": "Hand derivation; formulas per Montgomery 8th ed. ch. 7.3.2",
+      "derivation": "defects=[6,4,9,5] over units=[3,2,4,2]: ubar=24/11; per-point limits ubar +/- 3*sqrt(ubar/n_i), so no scalar UCL/LCL in stats (varying sizes).",
+      "inputs": {
+        "frame": { "flaws": [6, 4, 9, 5], "units": [3, 2, 4, 2] },
+        "kwargs": { "defects": "flaws", "size": "units", "rules": "none" }
+      },
+      "expected": {
+        "u_center": 2.1818181818181817
+      },
+      "tol": 1e-9
     }
   ]
 }
