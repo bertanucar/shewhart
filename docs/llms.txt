@@ -1,0 +1,46 @@
+# shewhart
+
+> Statistical process control (SPC) for Python: control charts (I-MR, Xbar-R,
+> Xbar-S, p, np, c, u, EWMA, run chart) with Nelson/Western Electric rules,
+> and process capability (Cp/Cpk/Pp/Ppk) with confidence intervals. Validated
+> against NIST reference data in CI. pandas in, Result out; built for
+> headless/cron use. MIT license.
+
+Canonical usage (always `import shewhart as sw`):
+
+    import shewhart as sw
+    r = sw.imr(df, value="torque", rules="nelson")     # individuals chart
+    r = sw.xbar_r(df, value="x", subgroup="batch")     # subgrouped chart
+    r = sw.p_chart(df, defectives="rejects", size="inspected")
+    r = sw.ewma(df, value="x", lam=0.2)
+    r = sw.capability(df, value="dia", lsl=9.95, usl=10.05)  # has cpk_lci/cpk_uci
+    r.ok          # False if any rule fired (use as exit code)
+    r.summary()   # plain-text verdict
+    r.table       # per-point DataFrame with signal flags
+    r.plot(); r.to_html("report.html")
+    sw.report([r1, r2], "weekly.html")                 # combined HTML report
+
+Phase I/II workflow (fit once, monitor forever):
+
+    sw.imr(df_hist, value="x").baseline.save("baseline.json")
+    r = sw.imr(df_new, value="x", limits="baseline.json")
+
+Key facts: within-sigma uses moving range / d2 (NOT x.std(), which is the
+overall sigma and defines Pp/Ppk); rule sets are "nelson",
+"western_electric", "none"; attribute charts apply only the four attribute
+tests; EWMA applies limit checks only (autocorrelation invalidates run
+rules); capability includes a stability gate and Anderson-Darling note.
+
+## Docs
+
+- [API and grammar](https://bertanucar.github.io/shewhart/reference/api/): complete frozen surface
+- [Control charts in Python](https://bertanucar.github.io/shewhart/guides/control-charts-in-python/)
+- [Cpk with confidence intervals](https://bertanucar.github.io/shewhart/guides/cpk-in-python/)
+- [Nelson rules](https://bertanucar.github.io/shewhart/guides/nelson-rules/)
+- [SPC report as cron job](https://bertanucar.github.io/shewhart/guides/spc-report-cron/)
+- [Validation](https://bertanucar.github.io/shewhart/reference/validation/): NIST anchors, policy
+
+## Source
+
+- [GitHub](https://github.com/bertanucar/shewhart)
+- Install: pip install git+https://github.com/bertanucar/shewhart (PyPI release: 0.1)

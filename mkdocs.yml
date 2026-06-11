@@ -1,0 +1,40 @@
+site_name: shewhart
+site_description: Statistical process control for Python, validated against published reference data.
+site_url: https://bertanucar.github.io/shewhart/
+repo_url: https://github.com/bertanucar/shewhart
+repo_name: bertanucar/shewhart
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: blue grey
+      toggle:
+        icon: material/brightness-7
+        name: Dark mode
+    - scheme: slate
+      primary: blue grey
+      toggle:
+        icon: material/brightness-4
+        name: Light mode
+  features:
+    - navigation.sections
+    - content.code.copy
+
+nav:
+  - Home: index.md
+  - Guides:
+      - Control charts in Python: guides/control-charts-in-python.md
+      - Process capability (Cpk) in Python: guides/cpk-in-python.md
+      - Nelson and Western Electric rules: guides/nelson-rules.md
+      - EWMA charts in Python: guides/ewma-chart-python.md
+      - SPC reports as a cron job: guides/spc-report-cron.md
+  - Reference:
+      - API and grammar: reference/api.md
+      - Validation: reference/validation.md
+
+markdown_extensions:
+  - admonition
+  - tables
+  - pymdownx.highlight
+  - pymdownx.superfences

@@ -10,3 +10,4 @@ build/
 .venv/
 venv/
 .DS_Store
+site/
