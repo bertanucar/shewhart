@@ -178,6 +178,13 @@ class Result:
 
         return _plot.render(self, ax=ax)
 
+    def to_html(self, path=None, *, title: str | None = None):
+        """Self-contained HTML report; returns the HTML string, or writes
+        to ``path`` and returns the Path. Works headless (cron, CI)."""
+        from . import _report
+
+        return _report.result_to_html(self, path, title=title)
+
     def _repr_html_(self) -> str:
         body = self.summary().replace("\n", "<br>")
         return f"<pre>{body}</pre>"

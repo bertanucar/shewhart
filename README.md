@@ -26,11 +26,16 @@ attempt to fix that, with a few specific goals:
 
 Under active development, pre 0.1. Implemented and tested so far:
 
-* I-MR, Xbar-R and Xbar-S charts
-* Nelson rules 1 to 8 and Western Electric rules 1 to 4
+* control charts: I-MR, Xbar-R, Xbar-S, p, np, c, u (stair-step limits for
+  varying subgroup sizes), run chart with the four runs tests
+* process capability: Cp, Cpk, Pp, Ppk, Cpm with confidence intervals
+  (chi-square for Cp/Pp, Bissell approximation for Cpk/Ppk), within vs
+  overall sigma, expected and observed PPM, stability gate, normality check
+* Nelson rules 1 to 8 and Western Electric rules 1 to 4, returned as
+  structured signal events
 * chart constants (d2, d3, c4, A2, A3, D3, D4, B3, B4), computed from their
   defining integrals rather than copied from tables
-* baseline freezing and reuse (JSON)
+* baseline freezing and reuse (JSON), self-contained HTML reports
 * a reference-case validation suite (tests/validation_cases.json)
 
 The version on PyPI (0.0.1) predates most of this. Until 0.1 is released,
@@ -68,6 +73,24 @@ r = sw.imr(df_new, value="torque", limits="line3_baseline.json")
 sys.exit(0 if r.ok else 1)
 ```
 
+Capability analysis, with the confidence intervals that the usual
+hand-rolled Cpk calculation cannot give you:
+
+```python
+r = sw.capability(df, value="dia", lsl=9.95, usl=10.05)
+r.stats["cpk"], r.stats["cpk_lci"], r.stats["cpk_uci"]
+```
+
+Several analyses in one self-contained HTML file, e.g. as a weekly job:
+
+```python
+sw.report([
+    sw.imr(df, value="torque", limits="line3_baseline.json"),
+    sw.p_chart(df2, defectives="rejects", size="inspected"),
+    sw.capability(df, value="torque", lsl=9.5, usl=11.0),
+], "weekly_report.html", title="Line 3 weekly")
+```
+
 Every analysis returns the same `Result` object: named statistics, a tidy
 per-point table, a tuple of structured rule violations, and provenance
 metadata (library version, input hash, timestamp).
@@ -76,7 +99,7 @@ metadata (library version, input hash, timestamp).
 
 | Version | Scope |
 |---------|-------|
-| 0.1     | attribute charts (p, np, c, u), run chart, capability analysis with confidence intervals, HTML report |
+| 0.1     | NIST/SEMATECH reference datasets in the validation suite, documentation site, PyPI release |
 | 0.1.x   | EWMA, CUSUM, Laney p'/u', non-normal capability, tolerance intervals |
 | 0.2     | measurement systems analysis: ANOVA gauge R&R (crossed and nested), Type 1 studies, attribute agreement |
 | 0.3     | process screening across many characteristics, drift monitoring with control chart semantics |
