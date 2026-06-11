@@ -118,6 +118,51 @@
         "u_center": 2.1818181818181817
       },
       "tol": 1e-9
+    },
+    {
+      "id": "capability-hand-001",
+      "chart": "capability",
+      "source": "Hand derivation; indices and intervals per Montgomery 8th ed. ch. 8 (Cp interval exact chi-square; Cpk interval Bissell 1990 / Montgomery eq. 8.19)",
+      "derivation": "x=[10,12,11,13,12], LSL=6, USL=16, confidence 0.95: mean=11.6; sigma_within=MRbar/d2(2)=1.5*sqrt(pi)/2; sigma_overall=sqrt(5.2/4); Cp=10/(6*s_w); Cpk=min(4.4,5.6)/(3*s_w); Pp,Ppk analog with s_o. df_within=0.62*(n-1)=2.48 (MR(2) effective df), df_overall=4. Cp CI: Cp*sqrt(chi2(alpha/2,df)/df); Cpk CI: Cpk*(1 +/- z*sqrt(1/(9*n*Cpk^2)+1/(2*df))). Expected PPM from normal tails.",
+      "inputs": {
+        "data": [10, 12, 11, 13, 12],
+        "kwargs": { "lsl": 6, "usl": 16, "confidence": 0.95 }
+      },
+      "expected": {
+        "mean": 11.6,
+        "sigma_within": 1.3293403881791372,
+        "sigma_overall": 1.1401754250991378,
+        "cp": 1.2537546301061249,
+        "cpk": 1.10330407449339,
+        "pp": 1.4617633655117155,
+        "ppk": 1.2863517616503097,
+        "cp_lci": 0.2703628317047268,
+        "cp_uci": 2.3009503054077562,
+        "cpk_lci": 0.08933464464779221,
+        "cpk_uci": 2.117273504338988,
+        "pp_lci": 0.5086949938175186,
+        "pp_uci": 2.4397972170663706,
+        "ppk_lci": 0.3483091715678716,
+        "ppk_uci": 2.2243943517327476,
+        "ppm_observed": 0.0,
+        "ppm_within": 479.24768784313176,
+        "ppm_overall": 57.36494813146642
+      },
+      "tol": 1e-9
+    },
+    {
+      "id": "run_chart-hand-001",
+      "chart": "run_chart",
+      "source": "Hand derivation; runs-about-median test with normal approximation",
+      "derivation": "x=[1,1,1,5,5,5]: median=3, m=k=3, observed runs R=2; E(R)=2mk/(m+k)+1=4; Var=2mk(2mk-m-k)/((m+k)^2(m+k-1))=1.2; z=(2-4)/sqrt(1.2); p_clustering=Phi(z)=0.0339445774.",
+      "inputs": { "data": [1, 1, 1, 5, 5, 5], "kwargs": {} },
+      "expected": {
+        "median": 3.0,
+        "runs_about_median": 2.0,
+        "runs_expected": 4.0,
+        "p_clustering": 0.033944577430914495
+      },
+      "tol": 1e-9
     }
   ]
 }

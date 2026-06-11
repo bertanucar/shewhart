@@ -69,12 +69,13 @@ class Signal:
         }
 
     def __str__(self) -> str:
-        pts = (
-            f"point {self.points[0]}"
-            if len(self.points) == 1
-            else f"points {self.points[0]}-{self.points[-1]}"
-        )
-        return f"{self.rule} ({self.chart}): {pts}" + (f" - {self.note}" if self.note else "")
+        if not self.points:
+            pts = ""
+        elif len(self.points) == 1:
+            pts = f": point {self.points[0]}"
+        else:
+            pts = f": points {self.points[0]}-{self.points[-1]}"
+        return f"{self.rule} ({self.chart}){pts}" + (f" - {self.note}" if self.note else "")
 
 
 @dataclasses.dataclass(frozen=True)

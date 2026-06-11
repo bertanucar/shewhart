@@ -23,16 +23,19 @@ _SPECS = {
 }
 
 
-# single-panel attribute charts: (title, value column, y label, center key)
+# single-panel charts: (title, value column, y label, center key)
 _SINGLE = {
     "p_chart": ("p chart", "proportion", "proportion defective", "p_center"),
     "np_chart": ("np chart", "defectives", "defective units", "np_center"),
     "c_chart": ("c chart", "defects", "defects", "c_center"),
     "u_chart": ("u chart", "per_unit", "defects per unit", "u_center"),
+    "run_chart": ("run chart", "value", "value", "median"),
 }
 
 
 def render(result, ax=None):
+    if result.method == "capability":
+        return _render_capability(result, ax)
     if result.method in _SINGLE:
         return _render_single(result, ax)
     try:
@@ -60,6 +63,40 @@ def render(result, ax=None):
     return axes
 
 
+def _render_capability(result, ax=None):
+    import matplotlib.pyplot as plt
+    import numpy as np
+    from scipy import stats as sps
+
+    if ax is None:
+        _, ax = plt.subplots(figsize=(9, 4.5))
+
+    x = result.table["value"].to_numpy()
+    s = result.stats
+    ax.hist(x, bins="auto", density=True, color="#9ecae1", edgecolor="white")
+
+    grid = np.linspace(x.min() - 3 * s["sigma_overall"], x.max() + 3 * s["sigma_overall"], 300)
+    ax.plot(grid, sps.norm.pdf(grid, s["mean"], s["sigma_within"]),
+            color="#1f77b4", lw=1.5, label="within")
+    ax.plot(grid, sps.norm.pdf(grid, s["mean"], s["sigma_overall"]),
+            color="#1f77b4", lw=1.5, ls="--", label="overall")
+
+    ax.axvline(s["mean"], color="#444444", lw=1)
+    for key, label in (("lsl", "LSL"), ("usl", "USL"), ("target", "T")):
+        v = result.params.get(key)
+        if v is not None:
+            ax.axvline(v, color="#d62728", lw=1.5)
+            ax.text(v, ax.get_ylim()[1] * 0.95, label, color="#d62728",
+                    ha="center", va="top")
+
+    cpk = s.get("cpk")
+    title = "Process capability" + (f"  (Cpk = {cpk:.2f})" if cpk is not None else "")
+    ax.set_title(title)
+    ax.legend(frameon=False)
+    ax.set_xlabel(result.params.get("value") or "value")
+    return ax
+
+
 def _render_single(result, ax=None):
     import matplotlib.pyplot as plt
 
@@ -73,8 +110,9 @@ def _render_single(result, ax=None):
 
     ax.plot(xs, values, marker="o", ms=4, lw=1, color="#1f77b4")
     ax.axhline(result.stats[center_key], color="#444444", lw=1)
-    ax.step(xs, table["ucl"].to_numpy(), where="mid", color="#d62728", lw=1, ls="--")
-    ax.step(xs, table["lcl"].to_numpy(), where="mid", color="#d62728", lw=1, ls="--")
+    if "ucl" in table.columns:
+        ax.step(xs, table["ucl"].to_numpy(), where="mid", color="#d62728", lw=1, ls="--")
+        ax.step(xs, table["lcl"].to_numpy(), where="mid", color="#d62728", lw=1, ls="--")
 
     flagged = table["signal"].to_numpy()
     ax.plot(

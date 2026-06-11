@@ -14,28 +14,13 @@ import numpy as np
 import pandas as pd
 
 from .._constants import D4, d2
+from .._data import as_series
 from .._registry import register
 from .._result import Baseline, Result, Signal, data_hash, utcnow
 from .._rules import apply_rules, resolve_ruleset
 from .._version import __version__
 
 _BASELINE_KEYS = ("i_center", "sigma_within", "mr_center")
-
-
-def _as_series(data: Any, value: str | None) -> pd.Series:
-    if isinstance(data, pd.DataFrame):
-        if value is None or value not in data.columns:
-            raise ValueError(
-                f"imr() got a DataFrame, so value= must name the measurement "
-                f"column. Columns: {list(data.columns)}. "
-                'Example: sw.imr(df, value="torque")'
-            )
-        s = data[value]
-    elif isinstance(data, pd.Series):
-        s = data
-    else:
-        s = pd.Series(np.asarray(data, dtype="float64"))
-    return s.astype("float64").dropna()
 
 
 def _resolve_baseline(limits: Any) -> Baseline:
@@ -91,7 +76,7 @@ def imr(
         r = imr(df_new, value="torque", limits="line3_baseline.json")
         sys.exit(0 if r.ok else 1)
     """
-    s = _as_series(data, value)
+    s = as_series(data, value, "imr")
     if len(s) < 2:
         raise ValueError(
             f"imr() needs at least 2 observations, got {len(s)}. "
