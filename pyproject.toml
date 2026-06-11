@@ -4,13 +4,18 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "shewhart"
-version = "0.0.1"
+version = "0.1.0.dev0"
 description = "Statistical process control (SPC) for Python: control charts, process capability, and measurement systems analysis. Validated, pandas-native, automation-first."
 readme = "README.md"
 license = { text = "MIT" }
 authors = [{ name = "Bertan Ucar" }]
 requires-python = ">=3.10"
-dependencies = ["numpy>=1.24", "pandas>=2.0"]
+dependencies = [
+    "numpy>=1.24",
+    "pandas>=2.0",
+    "scipy>=1.10",
+    "matplotlib>=3.7",
+]
 keywords = [
     "spc",
     "statistical-process-control",
@@ -24,7 +29,7 @@ keywords = [
     "quality-control",
 ]
 classifiers = [
-    "Development Status :: 2 - Pre-Alpha",
+    "Development Status :: 3 - Alpha",
     "Intended Audience :: Manufacturing",
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: MIT License",
@@ -40,5 +45,8 @@ Homepage = "https://github.com/bertanucar/shewhart"
 Repository = "https://github.com/bertanucar/shewhart"
 Issues = "https://github.com/bertanucar/shewhart/issues"
 
-[tool.setuptools]
-packages = ["shewhart"]
+[tool.setuptools.packages.find]
+include = ["shewhart*"]
+
+[tool.setuptools.package-data]
+shewhart = ["py.typed"]
