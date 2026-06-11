@@ -27,7 +27,8 @@ attempt to fix that, with a few specific goals:
 Under active development, pre 0.1. Implemented and tested so far:
 
 * control charts: I-MR, Xbar-R, Xbar-S, p, np, c, u (stair-step limits for
-  varying subgroup sizes), run chart with the four runs tests
+  varying subgroup sizes), EWMA (exact and asymptotic limits), run chart
+  with the four runs tests
 * process capability: Cp, Cpk, Pp, Ppk, Cpm with confidence intervals
   (chi-square for Cp/Pp, Bissell approximation for Cpk/Ppk), within vs
   overall sigma, expected and observed PPM, stability gate, normality check
@@ -36,7 +37,9 @@ Under active development, pre 0.1. Implemented and tested so far:
 * chart constants (d2, d3, c4, A2, A3, D3, D4, B3, B4), computed from their
   defining integrals rather than copied from tables
 * baseline freezing and reuse (JSON), self-contained HTML reports
-* a reference-case validation suite (tests/validation_cases.json)
+* a reference-case validation suite (tests/validation_cases.json), anchored
+  externally: NIST StRD certified values (Michelso, NumAcc1) and the
+  NIST/SEMATECH e-Handbook EWMA worked example are reproduced in CI
 
 The version on PyPI (0.0.1) predates most of this. Until 0.1 is released,
 install from source:
@@ -99,8 +102,8 @@ metadata (library version, input hash, timestamp).
 
 | Version | Scope |
 |---------|-------|
-| 0.1     | NIST/SEMATECH reference datasets in the validation suite, documentation site, PyPI release |
-| 0.1.x   | EWMA, CUSUM, Laney p'/u', non-normal capability, tolerance intervals |
+| 0.1     | documentation site, PyPI release |
+| 0.1.x   | CUSUM, Laney p'/u', non-normal capability, tolerance intervals |
 | 0.2     | measurement systems analysis: ANOVA gauge R&R (crossed and nested), Type 1 studies, attribute agreement |
 | 0.3     | process screening across many characteristics, drift monitoring with control chart semantics |
 

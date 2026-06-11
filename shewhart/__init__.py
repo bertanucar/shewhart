@@ -20,7 +20,17 @@ from ._result import Baseline, Result, Signal
 from ._version import __version__
 from ._report import report
 from .capability import capability
-from .charts import c_chart, imr, np_chart, p_chart, run_chart, u_chart, xbar_r, xbar_s
+from .charts import (
+    c_chart,
+    ewma,
+    imr,
+    np_chart,
+    p_chart,
+    run_chart,
+    u_chart,
+    xbar_r,
+    xbar_s,
+)
 
 __all__ = [
     "report",
@@ -32,6 +42,7 @@ __all__ = [
     "c_chart",
     "u_chart",
     "run_chart",
+    "ewma",
     "capability",
     "chart",
     "available",

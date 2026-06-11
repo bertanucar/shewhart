@@ -30,6 +30,7 @@ _SINGLE = {
     "c_chart": ("c chart", "defects", "defects", "c_center"),
     "u_chart": ("u chart", "per_unit", "defects per unit", "u_center"),
     "run_chart": ("run chart", "value", "value", "median"),
+    "ewma": ("EWMA chart", "ewma", "EWMA", "center"),
 }
 
 

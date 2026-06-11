@@ -163,6 +163,55 @@
         "p_clustering": 0.033944577430914495
       },
       "tol": 1e-9
+    },
+    {
+      "id": "capability-nist-michelso",
+      "chart": "capability",
+      "source": "NIST StRD Univariate Summary Statistics, dataset Michelso (public domain): certified mean 299.852400000000, certified std 0.0790105478190518; https://www.itl.nist.gov/div898/strd/univ/data/Michelso.dat",
+      "derivation": "mean and sigma_overall must reproduce the NIST-certified values; pp derived from the certified std with specs LSL=299.6, USL=300.1: pp = 0.5/(6*0.0790105478190518).",
+      "inputs": {
+        "data": [299.85, 299.74, 299.90, 300.07, 299.93, 299.85, 299.95, 299.98, 299.98, 299.88, 300.00, 299.98, 299.93, 299.65, 299.76, 299.81, 300.00, 300.00, 299.96, 299.96, 299.96, 299.94, 299.96, 299.94, 299.88, 299.80, 299.85, 299.88, 299.90, 299.84, 299.83, 299.79, 299.81, 299.88, 299.88, 299.83, 299.80, 299.79, 299.76, 299.80, 299.88, 299.88, 299.88, 299.86, 299.72, 299.72, 299.62, 299.86, 299.97, 299.95, 299.88, 299.91, 299.85, 299.87, 299.84, 299.84, 299.85, 299.84, 299.84, 299.84, 299.89, 299.81, 299.81, 299.82, 299.80, 299.77, 299.76, 299.74, 299.75, 299.76, 299.91, 299.92, 299.89, 299.86, 299.88, 299.72, 299.84, 299.85, 299.85, 299.78, 299.89, 299.84, 299.78, 299.81, 299.76, 299.81, 299.79, 299.81, 299.82, 299.85, 299.87, 299.87, 299.81, 299.74, 299.81, 299.94, 299.95, 299.80, 299.81, 299.87],
+        "kwargs": { "lsl": 299.6, "usl": 300.1 }
+      },
+      "expected": {
+        "mean": 299.8524,
+        "sigma_overall": 0.0790105478190518,
+        "pp": 1.05471149907961
+      },
+      "tol": 1e-9
+    },
+    {
+      "id": "capability-nist-numacc1",
+      "chart": "capability",
+      "source": "NIST StRD dataset NumAcc1 (numerical accuracy benchmark, public domain): certified mean 10000002 (exact), certified std 1 (exact); https://www.itl.nist.gov/div898/strd/univ/data/NumAcc1.dat",
+      "derivation": "Large-offset data probes catastrophic cancellation in the variance computation. With LSL=9999999, USL=10000005: pp = 6/(6*1) = 1 exactly.",
+      "inputs": {
+        "data": [10000001, 10000003, 10000002],
+        "kwargs": { "lsl": 9999999, "usl": 10000005 }
+      },
+      "expected": {
+        "mean": 10000002.0,
+        "sigma_overall": 1.0,
+        "pp": 1.0
+      },
+      "tol": 1e-9
+    },
+    {
+      "id": "ewma-nist-handbook",
+      "chart": "ewma",
+      "source": "NIST/SEMATECH e-Handbook of Statistical Methods, section 6.3.2.4 (EWMA Control Charts), public domain; https://www.itl.nist.gov/div898/handbook/pmc/section3/pmc324.htm",
+      "derivation": "Handbook worked example: center 50, historical s 2.0539, lambda 0.3, k=3, asymptotic limits. Handbook prints UCL=52.5884 and LCL=47.4115 (the LCL is NIST's own rounding of 47.41157); tolerance 1e-3 covers the 4-decimal display precision.",
+      "inputs": {
+        "data": [52.0, 47.0, 53.0, 49.3, 50.1, 47.0, 51.0, 50.1, 51.2, 50.5, 49.6, 47.6, 49.9, 51.3, 47.8, 51.2, 52.6, 52.4, 53.6, 52.1],
+        "kwargs": { "center": 50, "sigma": 2.0539, "lam": 0.3, "k": 3, "asymptotic": true }
+      },
+      "expected": {
+        "center": 50.0,
+        "sigma": 2.0539,
+        "ewma_ucl": 52.5884,
+        "ewma_lcl": 47.4115
+      },
+      "tol": 1e-3
     }
   ]
 }
