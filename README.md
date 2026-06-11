@@ -1,60 +1,90 @@
 # shewhart
 
-**Statistical process control (SPC) for Python — validated, pandas-native, automation-first.**
+Statistical process control for Python.
 
-Named after Walter A. Shewhart, the father of statistical process control.
+Control charts with the standard run rules, process capability analysis, and
+measurement systems analysis. Results are computed from the published formulas
+and checked against reference values in the test suite.
 
-## Why
+Named after Walter A. Shewhart.
 
-Quality engineering is the most under-served statistical vertical in Python. R has had
-`qcc` since 2004; Python has a graveyard of abandoned fragments. Nothing does proper
-ANOVA Gauge R&R, capability indices ship without confidence intervals, and none of it
-is built for the way modern process data actually lives: in pandas, in databases, in
-pipelines that should produce Monday-morning reports without anyone clicking a mouse.
+## Motivation
 
-`shewhart` is being built to close that gap:
+R has had a maintained SPC package (qcc) since 2004. Python does not: the
+existing packages are unmaintained, cover only fragments of the toolkit, and
+none of them validate their output against reference data. This library is an
+attempt to fix that, with a few specific goals:
 
-- **Control charts** that respect Phase I / Phase II separation, with Nelson and
-  Western Electric rule engines
-- **Process capability** (Cp/Cpk/Pp/Ppk) with honest confidence intervals and
-  non-normal methods
-- **Measurement systems analysis** — full ANOVA Gauge R&R the way the AIAG manual
-  defines it
-- **One-call HTML reports** — your weekly control chart review as a cron job
-- **A public validation suite** against NIST/SEMATECH reference datasets
+* correct constants and estimators, validated against published values
+* a clean separation between estimating control limits (Phase I) and
+  monitoring new data against frozen limits (Phase II)
+* rule violations as structured data, usable in pipelines, not only in plots
+* an API that works headless, so a weekly control chart review can run as a
+  cron job
 
 ## Status
 
-`v0.0.1` — first working primitives while the full `v0.1` is under active development
-(target: 2026). The API below is real and tested; everything else is on the
-[roadmap](#roadmap).
+Under active development, pre 0.1. Implemented and tested so far:
+
+* I-MR, Xbar-R and Xbar-S charts
+* Nelson rules 1 to 8 and Western Electric rules 1 to 4
+* chart constants (d2, d3, c4, A2, A3, D3, D4, B3, B4), computed from their
+  defining integrals rather than copied from tables
+* baseline freezing and reuse (JSON)
+* a reference-case validation suite (tests/validation_cases.json)
+
+The version on PyPI (0.0.1) predates most of this. Until 0.1 is released,
+install from source:
+
+```
+pip install git+https://github.com/bertanucar/shewhart
+```
+
+## Usage
 
 ```python
 import shewhart as sw
 
-limits = sw.imr_limits([10.2, 10.4, 10.1, 10.5, 10.3, 10.2, 10.6])
-# {'i_center': 10.329, 'i_lcl': 9.531, 'i_ucl': 11.126, ...}
-
-flags = sw.beyond_limits([10.2, 10.4, 12.9, 10.5], limits)
-# [False, False, True, False]
+r = sw.imr(df, value="torque", rules="nelson")
+r.ok           # False if any rule fired
+r.summary()    # plain text verdict
+r.table        # per-point DataFrame with signal flags
+r.plot()
 ```
+
+Subgrouped data:
+
+```python
+r = sw.xbar_r(df, value="torque", subgroup="batch")
+```
+
+Fit limits once, then monitor new data against them:
+
+```python
+sw.imr(df_baseline, value="torque").baseline.save("line3_baseline.json")
+
+# later, e.g. in a scheduled job:
+r = sw.imr(df_new, value="torque", limits="line3_baseline.json")
+sys.exit(0 if r.ok else 1)
+```
+
+Every analysis returns the same `Result` object: named statistics, a tidy
+per-point table, a tuple of structured rule violations, and provenance
+metadata (library version, input hash, timestamp).
 
 ## Roadmap
 
 | Version | Scope |
 |---------|-------|
-| v0.1    | Shewhart chart family (I-MR, X̄-R, X̄-S, p/np/c/u), EWMA, CUSUM, rule engines, capability with CIs, HTML reports, NIST validation suite |
-| v0.2    | Measurement systems analysis: crossed/nested ANOVA Gauge R&R, Type 1 studies, attribute agreement |
-| v0.3    | `monitor` — drift and change-point detection with control-chart semantics (ARL-calibrated) for sensor streams and ML-model outputs |
-| v0.4    | Multivariate: Hotelling T², MEWMA, PCA-based monitoring |
+| 0.1     | attribute charts (p, np, c, u), run chart, capability analysis with confidence intervals, HTML report |
+| 0.1.x   | EWMA, CUSUM, Laney p'/u', non-normal capability, tolerance intervals |
+| 0.2     | measurement systems analysis: ANOVA gauge R&R (crossed and nested), Type 1 studies, attribute agreement |
+| 0.3     | process screening across many characteristics, drift monitoring with control chart semantics |
 
-Out of scope by design: DOE (see `pyDOE3`), reliability (see `reliability`),
-general statistics (see `statsmodels`, `pingouin`), GUIs.
-
-## Author
-
-Built by [Bertan Ucar](https://github.com/bertanucar) — PhD researcher @ Tsinghua University.
+Out of scope: DOE (see pyDOE3), reliability engineering (see reliability),
+general statistics (see statsmodels), GUIs.
 
 ## License
 
-MIT
+MIT. Written and maintained by [Bertan Ucar](https://github.com/bertanucar),
+PhD researcher at Tsinghua University.

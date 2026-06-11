@@ -39,10 +39,15 @@ def _as_series(data: Any, value: str | None) -> pd.Series:
 
 
 def _resolve_baseline(limits: Any) -> Baseline:
-    if isinstance(limits, Baseline):
-        return limits
     if isinstance(limits, (str, pathlib.Path)):
-        return Baseline.load(limits)
+        limits = Baseline.load(limits)
+    if isinstance(limits, Baseline):
+        if limits.chart != "imr":
+            raise ValueError(
+                f"This baseline was fitted for {limits.chart!r}, not 'imr'. "
+                'Fit a matching one: sw.imr(df_hist, value="x").baseline'
+            )
+        return limits
     if isinstance(limits, Mapping):
         missing = [k for k in _BASELINE_KEYS if k not in limits]
         if missing:

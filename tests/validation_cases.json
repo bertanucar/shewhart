@@ -1,0 +1,64 @@
+{
+  "version": 1,
+  "note": "Seed of the public validation suite. Every case is synthetic with a fully published derivation, so inputs and expected values can be redistributed freely. NIST/SEMATECH e-Handbook datasets (public domain) are the next wave; AIAG MSA examples will be verified privately and never shipped (copyright).",
+  "cases": [
+    {
+      "id": "imr-hand-001",
+      "chart": "imr",
+      "source": "Hand derivation; formulas per Montgomery 8th ed. ch. 6.4",
+      "derivation": "x=[10,12,11,13,12]: mean=11.6; MRs=[2,1,2,1], MRbar=1.5; sigma=MRbar/d2(2) with d2(2)=2/sqrt(pi), so sigma=1.5*sqrt(pi)/2; I-limits=11.6 +/- 3*sigma; MR UCL=D4(2)*MRbar with D4(2)=1+3*d3(2)/d2(2), d3(2)=sqrt(2-4/pi).",
+      "inputs": { "data": [10, 12, 11, 13, 12], "kwargs": { "rules": "none" } },
+      "expected": {
+        "i_center": 11.6,
+        "mr_center": 1.5,
+        "sigma_within": 1.3293403881791372,
+        "i_ucl": 15.588021164537412,
+        "i_lcl": 7.611978835462588,
+        "mr_ucl": 4.89979787893309
+      },
+      "tol": 1e-9
+    },
+    {
+      "id": "xbar_r-hand-001",
+      "chart": "xbar_r",
+      "source": "Hand derivation; formulas per Montgomery 8th ed. ch. 6.2",
+      "derivation": "Subgroups [[10,12],[11,13],[9,11],[12,14],[10,12]] (n=2, k=5): means=[11,12,10,13,11], xbarbar=11.4; ranges all 2, Rbar=2; sigma=Rbar/d2(2)=sqrt(pi); xbar limits=11.4 +/- 3*sigma/sqrt(2); R UCL=D4(2)*Rbar.",
+      "inputs": {
+        "frame": {
+          "x": [10, 12, 11, 13, 9, 11, 12, 14, 10, 12],
+          "g": ["b0", "b0", "b1", "b1", "b2", "b2", "b3", "b3", "b4", "b4"]
+        },
+        "kwargs": { "value": "x", "subgroup": "g", "rules": "none" }
+      },
+      "expected": {
+        "xbar_center": 11.4,
+        "r_center": 2.0,
+        "sigma_within": 1.7724538509055163,
+        "xbar_ucl": 15.159942411946501,
+        "xbar_lcl": 7.6400575880535,
+        "r_ucl": 6.533063838577454
+      },
+      "tol": 1e-9
+    },
+    {
+      "id": "xbar_s-hand-001",
+      "chart": "xbar_s",
+      "source": "Hand derivation; formulas per Montgomery 8th ed. ch. 6.3",
+      "derivation": "Same subgroups: s of each pair {a,a+2} = sqrt(2), sbar=sqrt(2); sigma=sbar/c4(2) with c4(2)=sqrt(2/pi), so sigma=sqrt(pi); xbar limits as in xbar_r; S UCL=B4(2)*sbar with B4(2)=1+3*sqrt(1-c4^2)/c4.",
+      "inputs": {
+        "frame": {
+          "x": [10, 12, 11, 13, 9, 11, 12, 14, 10, 12],
+          "g": ["b0", "b0", "b1", "b1", "b2", "b2", "b3", "b3", "b4", "b4"]
+        },
+        "kwargs": { "value": "x", "subgroup": "g", "rules": "none" }
+      },
+      "expected": {
+        "xbar_center": 11.4,
+        "s_center": 1.4142135623730951,
+        "sigma_within": 1.7724538509055168,
+        "s_ucl": 4.619573742182559
+      },
+      "tol": 1e-9
+    }
+  ]
+}
