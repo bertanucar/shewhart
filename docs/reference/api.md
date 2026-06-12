@@ -25,6 +25,7 @@ import shewhart as sw
 | `sw.u_chart(df, defects=, size=, rules=, limits=)` | u | rates, varying sizes |
 | `sw.ewma(data, value=, lam=, k=, center=, sigma=, asymptotic=, limits=)` | EWMA | exact limits by default |
 | `sw.run_chart(data, value=, alpha=)` | run chart | four runs tests |
+| `sw.pareto(data, by=, weights=)` | Pareto analysis | counts or weighted (e.g. cost) |
 | `sw.cusum(...)` | CUSUM | *planned (0.1.x)* |
 | `sw.laney_p(...)`, `sw.laney_u(...)` | Laney p'/u' | *planned (0.1.x)* |
 
@@ -76,5 +77,10 @@ sw.report([r1, r2, r3], "weekly.html", title="Line 3 weekly")
 
 * Data is always the first positional argument; every column or option is a
   keyword with a full word (`value=`, `subgroup=`, `lsl=`, `rules=`).
+* On a DatetimeIndex, `subgroup=` also accepts a fixed time window such as
+  `"15min"` or `"1H"`.
+* The full sigma-estimator menu (`method="rbar" | "sbar" | "pooled" |
+  "median_mr" | ...`) lands in 0.1.x; the aliases above are reserved now so
+  they never change later.
 * No `**kwargs` anywhere public.
 * Errors teach: every exception ends with a corrected, runnable example.

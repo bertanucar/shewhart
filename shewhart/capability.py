@@ -27,13 +27,23 @@ import pandas as pd
 from scipy import stats as sps
 
 from ._constants import d2
-from ._data import as_series
+from ._data import as_series, time_subgroups
 from ._registry import register
 from ._result import Result, Signal, data_hash, utcnow
 from ._version import __version__
 
 
 def _pooled(data: pd.DataFrame, value: str, subgroup: str):
+    time_labels = time_subgroups(data, subgroup)
+    if time_labels is not None:
+        data = data.assign(__window__=time_labels)
+        subgroup = "__window__"
+    if subgroup not in data.columns:
+        raise ValueError(
+            f'capability(): subgroup="{subgroup}" is not a column (or, with a '
+            'DatetimeIndex, a fixed time window like "1H"). '
+            f"Columns: {list(data.columns)}."
+        )
     frame = data[[value, subgroup]].dropna()
     groups = [
         g.to_numpy("float64")

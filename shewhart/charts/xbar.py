@@ -19,6 +19,7 @@ import numpy as np
 import pandas as pd
 
 from .._constants import A2, A3, B3, B4, D3, D4, c4, d2
+from .._data import time_subgroups
 from .._registry import register
 from .._result import Baseline, Result, Signal, data_hash, utcnow
 from .._rules import apply_rules, resolve_ruleset
@@ -32,10 +33,15 @@ def _prepare(data: Any, value: str | None, subgroup: str | None, fname: str):
             f'Example: sw.{fname}(df, value="torque", subgroup="batch"). '
             "For individual values (no subgroups), use sw.imr()."
         )
+    time_labels = time_subgroups(data, subgroup)
+    if time_labels is not None:
+        data = data.assign(__window__=time_labels)
+        subgroup = "__window__"
     for arg, name in ((value, "value"), (subgroup, "subgroup")):
         if arg is None or arg not in data.columns:
             raise ValueError(
-                f"{fname}() requires {name}= naming a column. "
+                f"{fname}() requires {name}= naming a column (or, with a "
+                f"DatetimeIndex, a fixed time window like subgroup=\"1H\"). "
                 f"Columns: {list(data.columns)}. "
                 f'Example: sw.{fname}(df, value="torque", subgroup="batch")'
             )

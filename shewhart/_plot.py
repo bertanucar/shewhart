@@ -37,6 +37,8 @@ _SINGLE = {
 def render(result, ax=None):
     if result.method == "capability":
         return _render_capability(result, ax)
+    if result.method == "pareto":
+        return _render_pareto(result, ax)
     if result.method in _SINGLE:
         return _render_single(result, ax)
     try:
@@ -62,6 +64,30 @@ def render(result, ax=None):
     axes[0].set_title(f"{title} - {result.meta.get('source', '')}")
     axes[1].set_xlabel("observation")
     return axes
+
+
+def _render_pareto(result, ax=None):
+    import matplotlib.pyplot as plt
+
+    if ax is None:
+        _, ax = plt.subplots(figsize=(9, 4.5))
+
+    t = result.table
+    xs = range(len(t))
+    ax.bar(xs, t["count"].to_numpy(), color="#9ecae1", edgecolor="white")
+    ax.set_xticks(list(xs))
+    ax.set_xticklabels([str(i) for i in t.index], rotation=30, ha="right")
+    ax.set_ylabel("count")
+
+    ax2 = ax.twinx()
+    ax2.plot(xs, 100 * t["cumulative_share"].to_numpy(),
+             marker="o", ms=4, color="#d62728", lw=1.2)
+    ax2.axhline(80, color="#888888", lw=0.8, ls=":")
+    ax2.set_ylim(0, 105)
+    ax2.set_ylabel("cumulative %")
+
+    ax.set_title("Pareto chart")
+    return ax
 
 
 def _render_capability(result, ax=None):

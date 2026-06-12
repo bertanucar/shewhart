@@ -28,7 +28,8 @@ Under active development, pre 0.1. Implemented and tested so far:
 
 * control charts: I-MR, Xbar-R, Xbar-S, p, np, c, u (stair-step limits for
   varying subgroup sizes), EWMA (exact and asymptotic limits), run chart
-  with the four runs tests
+  with the four runs tests, Pareto analysis
+* time-window subgrouping on DatetimeIndex data (`subgroup="1H"`)
 * process capability: Cp, Cpk, Pp, Ppk, Cpm with confidence intervals
   (chi-square for Cp/Pp, Bissell approximation for Cpk/Ppk), within vs
   overall sigma, expected and observed PPM, stability gate, normality check
