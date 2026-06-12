@@ -27,7 +27,8 @@ import shewhart as sw
 | `sw.run_chart(data, value=, alpha=)` | run chart | four runs tests |
 | `sw.pareto(data, by=, weights=)` | Pareto analysis | counts or weighted (e.g. cost) |
 | `sw.cusum(data, value=, k=, h=, center=, sigma=, limits=)` | tabular CUSUM | decision interval, no run rules |
-| `sw.laney_p(...)`, `sw.laney_u(...)` | Laney p'/u' | *planned (0.1.x)* |
+| `sw.laney_p(df, defectives=, size=, rules=, limits=)` | Laney p' | overdispersion-robust, reports sigma_z |
+| `sw.laney_u(df, defects=, size=, rules=, limits=)` | Laney u' | overdispersion-robust rates |
 
 ## Analyses
 

@@ -228,6 +228,23 @@
         "cusum_limit": 4.0
       },
       "tol": 1e-12
+    },
+    {
+      "id": "laney_p-hand-001",
+      "chart": "laney_p",
+      "source": "Hand derivation; Laney, Quality Engineering 14(4), 2002",
+      "derivation": "defectives=[2,3,1,4,2], n=50 each: pbar=0.048; sigma_i=sqrt(pbar(1-pbar)/50); z=(p_i-pbar)/sigma_i = [-0.264628, 0.396942, -0.926198, 1.058512, -0.264628]; sigma_z = mean|dz|/d2(2) = 1.1726025689292168; UCL = pbar + 3*sigma_i*sigma_z = 0.15434723105433096; LCL clamped to 0.",
+      "inputs": {
+        "frame": { "d": [2, 3, 1, 4, 2], "n": [50, 50, 50, 50, 50] },
+        "kwargs": { "defectives": "d", "size": "n", "rules": "none" }
+      },
+      "expected": {
+        "p_center": 0.048,
+        "sigma_z": 1.1726025689292168,
+        "p_ucl": 0.15434723105433096,
+        "p_lcl": 0.0
+      },
+      "tol": 1e-9
     }
   ]
 }

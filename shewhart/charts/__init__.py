@@ -1,4 +1,4 @@
-from .attributes import c_chart, np_chart, p_chart, u_chart
+from .attributes import c_chart, laney_p, laney_u, np_chart, p_chart, u_chart
 from .cusum import cusum
 from .ewma import ewma
 from .imr import imr
@@ -14,6 +14,8 @@ __all__ = [
     "np_chart",
     "c_chart",
     "u_chart",
+    "laney_p",
+    "laney_u",
     "run_chart",
     "ewma",
     "cusum",

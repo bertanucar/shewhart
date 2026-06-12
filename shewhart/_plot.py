@@ -29,6 +29,8 @@ _SINGLE = {
     "np_chart": ("np chart", "defectives", "defective units", "np_center"),
     "c_chart": ("c chart", "defects", "defects", "c_center"),
     "u_chart": ("u chart", "per_unit", "defects per unit", "u_center"),
+    "laney_p": ("Laney p' chart", "proportion", "proportion defective", "p_center"),
+    "laney_u": ("Laney u' chart", "per_unit", "defects per unit", "u_center"),
     "run_chart": ("run chart", "value", "value", "median"),
     "ewma": ("EWMA chart", "ewma", "EWMA", "center"),
 }

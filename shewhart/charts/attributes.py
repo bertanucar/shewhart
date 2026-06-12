@@ -303,6 +303,118 @@ def c_chart(data: Any, *, defects: str | None = None,
     )
 
 
+def _sigma_z(plotted: np.ndarray, center: float, sigma_i: np.ndarray, fname: str) -> float:
+    """Laney's sigma_z: short-term variation of the standardized points."""
+    z = (plotted - center) / sigma_i
+    mr = np.abs(np.diff(z))
+    sigma_z = float(mr.mean()) / 1.1283791670955126  # d2(2) = 2/sqrt(pi)
+    if sigma_z <= 0:
+        raise ValueError(
+            f"{fname}(): the standardized points show no variation, so "
+            "sigma_z is zero and Laney limits are undefined. With data this "
+            "uniform the classic chart is the right tool anyway."
+        )
+    return sigma_z
+
+
+@register("laney_p")
+def laney_p(data: Any, *, defectives: str | None = None, size: Any = None,
+            rules: str | None = "nelson", limits: Any = None) -> Result:
+    """Laney p' chart: p chart for overdispersed data (large subgroups).
+
+    Classic p-chart limits shrink with 1/sqrt(n); with very large subgroups
+    almost every point signals even on a healthy process (overdispersion).
+    Laney (Quality Engineering, 2002) widens the limits by sigma_z, the
+    short-term variation of the standardized points. sigma_z near 1 means
+    the classic p chart was fine; sigma_z well above 1 confirms
+    overdispersion.
+
+        r = sw.laney_p(df, defectives="rejects", size="inspected")
+        r.stats["sigma_z"]
+    """
+    d, index = _counts(data, defectives, "defectives", "laney_p")
+    n = _sizes(data, size, index, len(d), "laney_p")
+    dv = d.to_numpy("float64")
+    if (dv > n).any():
+        raise ValueError("laney_p(): defectives cannot exceed size in any period.")
+
+    prop = dv / n
+    if limits is None:
+        center = float(dv.sum() / n.sum())
+        sigma_i = np.sqrt(center * (1.0 - center) / n)
+        sz = _sigma_z(prop, center, sigma_i, "laney_p")
+        baseline = Baseline("laney_p", {"p_center": center, "sigma_z": sz},
+                            int(n.sum()), utcnow(), __version__)
+        source = "fitted (Phase I)"
+    else:
+        baseline = _resolve(limits, "laney_p", ("p_center", "sigma_z"))
+        center = float(baseline.stats["p_center"])
+        sz = float(baseline.stats["sigma_z"])
+        sigma_i = np.sqrt(center * (1.0 - center) / n)
+        source = "frozen baseline (Phase II)"
+
+    lcl = np.maximum(0.0, center - 3.0 * sigma_i * sz)
+    ucl = np.minimum(1.0, center + 3.0 * sigma_i * sz)
+
+    stats = {"p_center": center, "sigma_z": sz}
+    if len(set(n)) == 1:
+        stats["p_lcl"], stats["p_ucl"] = float(lcl[0]), float(ucl[0])
+
+    return _assemble(
+        method="laney_p", plotted=prop, lcl=lcl, ucl=ucl, center=center,
+        use_rules=_attr_ruleset(rules, "laney_p"),
+        table_cols={"defectives": dv, "size": n, "proportion": prop},
+        index=index, stats=stats,
+        params={"defectives": defectives, "size": size if np.isscalar(size) else str(size),
+                "rules": rules, "limits": "frozen" if limits is not None else "fitted"},
+        baseline=baseline, source=source, n_points=len(dv), hashed=np.vstack([dv, n]),
+    )
+
+
+@register("laney_u")
+def laney_u(data: Any, *, defects: str | None = None, size: Any = None,
+            rules: str | None = "nelson", limits: Any = None) -> Result:
+    """Laney u' chart: u chart for overdispersed rate data.
+
+        r = sw.laney_u(df, defects="flaws", size="units")
+    """
+    d, index = _counts(data, defects, "defects", "laney_u")
+    n = _sizes(data, size, index, len(d), "laney_u", integral=False)
+    dv = d.to_numpy("float64")
+    per_unit = dv / n
+
+    if limits is None:
+        center = float(dv.sum() / n.sum())
+        sigma_i = np.sqrt(center / n)
+        sz = _sigma_z(per_unit, center, sigma_i, "laney_u")
+        baseline = Baseline("laney_u", {"u_center": center, "sigma_z": sz},
+                            int(len(dv)), utcnow(), __version__)
+        source = "fitted (Phase I)"
+    else:
+        baseline = _resolve(limits, "laney_u", ("u_center", "sigma_z"))
+        center = float(baseline.stats["u_center"])
+        sz = float(baseline.stats["sigma_z"])
+        sigma_i = np.sqrt(center / n)
+        source = "frozen baseline (Phase II)"
+
+    lcl = np.maximum(0.0, center - 3.0 * sigma_i * sz)
+    ucl = center + 3.0 * sigma_i * sz
+
+    stats = {"u_center": center, "sigma_z": sz}
+    if len(set(n)) == 1:
+        stats["u_lcl"], stats["u_ucl"] = float(lcl[0]), float(ucl[0])
+
+    return _assemble(
+        method="laney_u", plotted=per_unit, lcl=lcl, ucl=ucl, center=center,
+        use_rules=_attr_ruleset(rules, "laney_u"),
+        table_cols={"defects": dv, "size": n, "per_unit": per_unit},
+        index=index, stats=stats,
+        params={"defects": defects, "size": size if np.isscalar(size) else str(size),
+                "rules": rules, "limits": "frozen" if limits is not None else "fitted"},
+        baseline=baseline, source=source, n_points=len(dv), hashed=np.vstack([dv, n]),
+    )
+
+
 @register("u_chart")
 def u_chart(data: Any, *, defects: str | None = None, size: Any = None,
             rules: str | None = "nelson", limits: Any = None) -> Result:
