@@ -34,15 +34,22 @@ Documentation: https://bertanucar.github.io/shewhart/
 
 ## Status
 
-Version 0.1.0 is on PyPI. Implemented and tested:
+Version 0.1.1 is on PyPI. Implemented and tested:
 
+* `review()`: one call that selects the right chart, checks the
+  assumptions, and returns a structured verdict (see below)
 * control charts: I-MR, Xbar-R, Xbar-S, p, np, c, u (stair-step limits for
-  varying subgroup sizes), EWMA (exact and asymptotic limits), run chart
-  with the four runs tests, Pareto analysis
+  varying subgroup sizes), Laney p'/u' for overdispersed data, EWMA (exact
+  and asymptotic limits), tabular CUSUM, run chart with the four runs
+  tests, Pareto analysis
 * time-window subgrouping on DatetimeIndex data (`subgroup="1H"`)
 * process capability: Cp, Cpk, Pp, Ppk, Cpm with confidence intervals
   (chi-square for Cp/Pp, Bissell approximation for Cpk/Ppk), within vs
-  overall sigma, expected and observed PPM, stability gate, normality check
+  overall sigma, expected and observed PPM, stability gate, normality
+  check; non-normal data via fitted models (percentile method) or Box-Cox
+* tolerance intervals: normal (Howe k2, anchored to the NIST handbook
+  factor) and nonparametric (Wilks)
+* named sigma estimators: average or median moving range, Sbar, pooled
 * Nelson rules 1 to 8 and Western Electric rules 1 to 4, returned as
   structured signal events
 * chart constants (d2, d3, c4, A2, A3, D3, D4, B3, B4), computed from their
@@ -54,9 +61,22 @@ Version 0.1.0 is on PyPI. Implemented and tested:
 
 ## Usage
 
+One call, if you just want a verdict:
+
 ```python
 import shewhart as sw
 
+rv = sw.review(df, value="torque", lsl=9.95, usl=10.05)
+rv.ok          # in control, capable, no failed checks
+rv.headline    # "In control: no rule violations on the imr chart. Cpk 1.41 (capable)."
+rv.to_dict()   # the full verdict as JSON-safe data
+```
+
+review() selects the chart from the data shape, checks the assumptions,
+and refuses to report capability on an unstable process. The individual
+analyses behind it:
+
+```python
 r = sw.imr(df, value="torque", rules="nelson")
 r.ok           # False if any rule fired
 r.summary()    # plain text verdict
@@ -102,11 +122,14 @@ Every analysis returns the same `Result` object: named statistics, a tidy
 per-point table, a tuple of structured rule violations, and provenance
 metadata (library version, input hash, timestamp).
 
+If you are wiring this into an AI agent, read
+[Statistics is not a language task](https://bertanucar.github.io/shewhart/agents/)
+first.
+
 ## Roadmap
 
 | Version | Scope |
 |---------|-------|
-| 0.1.x   | CUSUM, Laney p'/u', non-normal capability, tolerance intervals |
 | 0.2     | measurement systems analysis: ANOVA gauge R&R (crossed and nested), Type 1 studies, attribute agreement |
 | 0.3     | process screening across many characteristics, drift monitoring with control chart semantics |
 

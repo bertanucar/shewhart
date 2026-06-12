@@ -1,6 +1,26 @@
 # Changelog
 
-## 0.1.0 (unreleased)
+## 0.1.1
+
+### Added
+
+* `review()`: one call selects the chart (with an automatic Laney switch
+  on sigma_z), runs assumption checks, gates capability behind stability,
+  and returns a structured, JSON-safe verdict with machine-readable
+  failure codes. The verdict schema is frozen, append-only.
+* An agents page (docs: "Statistics is not a language task") and an
+  llms.txt refresh for the new surface.
+* Tabular CUSUM chart (`cusum`) with reference value and decision interval.
+* Laney p' and u' charts (`laney_p`, `laney_u`) for overdispersed attribute
+  data, reporting sigma_z.
+* Tolerance intervals (`tolerance_interval`): normal method (Howe k2,
+  anchored to the NIST handbook factor) and nonparametric (Wilks).
+* Non-normal capability: `dist="lognormal" | "weibull" | "gamma" | "auto"`
+  (percentile method) and `transform="boxcox"`.
+* Named sigma estimators: `imr(method="median_mr")` with a closed-form
+  d4(2), `xbar_s(method="pooled")` with B5/B6 limits.
+
+## 0.1.0
 
 First real release. The public API on the
 [grammar page](https://bertanucar.github.io/shewhart/reference/api/) is
