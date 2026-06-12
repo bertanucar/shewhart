@@ -33,6 +33,7 @@ nav:
       - Laney p' charts in Python: guides/laney-p-chart.md
       - Tolerance intervals in Python: guides/tolerance-intervals.md
       - SPC reports as a cron job: guides/spc-report-cron.md
+  - For AI agents: agents.md
   - Reference:
       - API and grammar: reference/api.md
       - Validation: reference/validation.md

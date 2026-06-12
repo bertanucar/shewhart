@@ -1,19 +1,29 @@
 # shewhart
 
 > Statistical process control (SPC) for Python: control charts (I-MR, Xbar-R,
-> Xbar-S, p, np, c, u, EWMA, run chart) with Nelson/Western Electric rules,
-> and process capability (Cp/Cpk/Pp/Ppk) with confidence intervals. Validated
-> against NIST reference data in CI. pandas in, Result out; built for
-> headless/cron use. MIT license.
+> Xbar-S, p, np, c, u, Laney p'/u', EWMA, CUSUM, run chart) with
+> Nelson/Western Electric rules, process capability (Cp/Cpk/Pp/Ppk) with
+> confidence intervals and non-normal methods, tolerance intervals, and a
+> one-call review() that selects the chart and returns a structured verdict.
+> Validated against NIST reference data in CI. pandas in, Result out; built
+> for headless/cron/agent use. MIT license. Install: pip install shewhart
 
 Canonical usage (always `import shewhart as sw`):
 
     import shewhart as sw
+    rv = sw.review(df, value="torque", lsl=9.95, usl=10.05)  # one call:
+    rv.ok          # chart selection + assumption checks + capability gate
+    rv.to_dict()   # structured verdict (JSON-safe), for pipelines and agents
+
     r = sw.imr(df, value="torque", rules="nelson")     # individuals chart
     r = sw.xbar_r(df, value="x", subgroup="batch")     # subgrouped chart
     r = sw.p_chart(df, defectives="rejects", size="inspected")
+    r = sw.laney_p(df, defectives="rejects", size="inspected")  # overdispersion
     r = sw.ewma(df, value="x", lam=0.2)
+    r = sw.cusum(df, value="x", k=0.5, h=4)            # tabular CUSUM
     r = sw.capability(df, value="dia", lsl=9.95, usl=10.05)  # has cpk_lci/cpk_uci
+    r = sw.capability(df, value="dia", usl=2.0, dist="auto") # non-normal
+    r = sw.tolerance_interval(df, value="x", coverage=0.99)
     r.ok          # False if any rule fired (use as exit code)
     r.summary()   # plain-text verdict
     r.table       # per-point DataFrame with signal flags
@@ -22,25 +32,32 @@ Canonical usage (always `import shewhart as sw`):
 
 Phase I/II workflow (fit once, monitor forever):
 
-    sw.imr(df_hist, value="x").baseline.save("baseline.json")
-    r = sw.imr(df_new, value="x", limits="baseline.json")
+    import sys
+    sw.review(df_hist, value="x").baseline.save("baseline.json")
+    rv = sw.review(df_new, value="x", limits="baseline.json")
+    sys.exit(0 if rv.ok else 1)
 
 Key facts: within-sigma uses moving range / d2 (NOT x.std(), which is the
 overall sigma and defines Pp/Ppk); rule sets are "nelson",
 "western_electric", "none"; attribute charts apply only the four attribute
-tests; EWMA applies limit checks only (autocorrelation invalidates run
-rules); capability includes a stability gate and Anderson-Darling note.
+tests; EWMA/CUSUM apply limit checks only (run rules assume independence);
+capability includes a stability gate and Anderson-Darling note; review()
+never invents statistics - it composes the validated functions and the
+selection conventions are documented.
 
 ## Docs
 
 - [API and grammar](https://bertanucar.github.io/shewhart/reference/api/): complete frozen surface
+- [One-call SPC review](https://bertanucar.github.io/shewhart/guides/review/): decision tree, checks, verdict schema
+- [Statistics is not a language task](https://bertanucar.github.io/shewhart/agents/): why agents should call tools, not generate formulas
 - [Control charts in Python](https://bertanucar.github.io/shewhart/guides/control-charts-in-python/)
 - [Cpk with confidence intervals](https://bertanucar.github.io/shewhart/guides/cpk-in-python/)
 - [Nelson rules](https://bertanucar.github.io/shewhart/guides/nelson-rules/)
+- [Laney p' charts](https://bertanucar.github.io/shewhart/guides/laney-p-chart/)
 - [SPC report as cron job](https://bertanucar.github.io/shewhart/guides/spc-report-cron/)
 - [Validation](https://bertanucar.github.io/shewhart/reference/validation/): NIST anchors, policy
 
 ## Source
 
 - [GitHub](https://github.com/bertanucar/shewhart)
-- Install: pip install git+https://github.com/bertanucar/shewhart (PyPI release: 0.1)
+- Install: pip install shewhart
