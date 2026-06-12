@@ -39,6 +39,8 @@ def render(result, ax=None):
         return _render_capability(result, ax)
     if result.method == "pareto":
         return _render_pareto(result, ax)
+    if result.method == "cusum":
+        return _render_cusum(result, ax)
     if result.method in _SINGLE:
         return _render_single(result, ax)
     try:
@@ -64,6 +66,37 @@ def render(result, ax=None):
     axes[0].set_title(f"{title} - {result.meta.get('source', '')}")
     axes[1].set_xlabel("observation")
     return axes
+
+
+def _render_cusum(result, ax=None):
+    import matplotlib.pyplot as plt
+
+    if ax is None:
+        _, ax = plt.subplots(figsize=(9, 4))
+
+    t = result.table
+    xs = range(len(t))
+    h = result.stats["cusum_limit"]
+
+    ax.plot(xs, t["cusum_pos"], marker="o", ms=4, lw=1, color="#1f77b4", label="C+")
+    ax.plot(xs, t["cusum_neg"], marker="o", ms=4, lw=1, color="#7f7f7f", label="C-")
+    ax.axhline(0, color="#444444", lw=1)
+    ax.axhline(h, color="#d62728", lw=1, ls="--")
+    ax.axhline(-h, color="#d62728", lw=1, ls="--")
+
+    flagged = t["signal"].to_numpy()
+    for col in ("cusum_pos", "cusum_neg"):
+        vals = t[col].to_numpy()
+        ax.plot(
+            [i for i in xs if flagged[i]],
+            vals[flagged],
+            "o", ms=7, mfc="none", mec="#d62728", mew=1.6, ls="",
+        )
+    ax.set_ylabel("cumulative sum")
+    ax.set_xlabel("observation")
+    ax.set_title(f"CUSUM chart - {result.meta.get('source', '')}")
+    ax.legend(frameon=False)
+    return ax
 
 
 def _render_pareto(result, ax=None):

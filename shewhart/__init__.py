@@ -22,6 +22,7 @@ from ._report import report
 from .capability import capability
 from .charts import (
     c_chart,
+    cusum,
     ewma,
     imr,
     np_chart,
@@ -44,6 +45,7 @@ __all__ = [
     "u_chart",
     "run_chart",
     "ewma",
+    "cusum",
     "pareto",
     "capability",
     "chart",

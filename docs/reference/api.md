@@ -26,7 +26,7 @@ import shewhart as sw
 | `sw.ewma(data, value=, lam=, k=, center=, sigma=, asymptotic=, limits=)` | EWMA | exact limits by default |
 | `sw.run_chart(data, value=, alpha=)` | run chart | four runs tests |
 | `sw.pareto(data, by=, weights=)` | Pareto analysis | counts or weighted (e.g. cost) |
-| `sw.cusum(...)` | CUSUM | *planned (0.1.x)* |
+| `sw.cusum(data, value=, k=, h=, center=, sigma=, limits=)` | tabular CUSUM | decision interval, no run rules |
 | `sw.laney_p(...)`, `sw.laney_u(...)` | Laney p'/u' | *planned (0.1.x)* |
 
 ## Analyses

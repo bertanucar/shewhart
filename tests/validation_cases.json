@@ -212,6 +212,22 @@
         "ewma_lcl": 47.4115
       },
       "tol": 1e-3
+    },
+    {
+      "id": "cusum-hand-001",
+      "chart": "cusum",
+      "source": "Hand derivation; tabular CUSUM per Montgomery 8th ed. ch. 9.1",
+      "derivation": "x=[10,10,10,11,12,13], center=10, sigma=1, k=0.5, h=4: K=0.5, H=4. C+ accumulates max(0, x-(10.5)+prev): [0,0,0,0.5,2.0,4.5]; C- stays 0. The last point exceeds H=4 (verified in the unit tests via the table); stats checked here: decision interval H = h*sigma = 4.",
+      "inputs": {
+        "data": [10, 10, 10, 11, 12, 13],
+        "kwargs": { "center": 10, "sigma": 1, "k": 0.5, "h": 4 }
+      },
+      "expected": {
+        "center": 10.0,
+        "sigma": 1.0,
+        "cusum_limit": 4.0
+      },
+      "tol": 1e-12
     }
   ]
 }

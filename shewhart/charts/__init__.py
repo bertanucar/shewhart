@@ -1,4 +1,5 @@
 from .attributes import c_chart, np_chart, p_chart, u_chart
+from .cusum import cusum
 from .ewma import ewma
 from .imr import imr
 from .pareto import pareto
@@ -15,5 +16,6 @@ __all__ = [
     "u_chart",
     "run_chart",
     "ewma",
+    "cusum",
     "pareto",
 ]
