@@ -13,7 +13,7 @@ from typing import Any, Mapping
 import numpy as np
 import pandas as pd
 
-from .._constants import D4, d2
+from .._constants import D4, d2, d4
 from .._data import as_series
 from .._registry import register
 from .._result import Baseline, Result, Signal, data_hash, utcnow
@@ -61,6 +61,7 @@ def imr(
     *,
     value: str | None = None,
     rules: str | None = "nelson",
+    method: str = "average_mr",
     limits: Any = None,
 ) -> Result:
     """Individuals & Moving Range chart.
@@ -75,7 +76,16 @@ def imr(
 
         r = imr(df_new, value="torque", limits="line3_baseline.json")
         sys.exit(0 if r.ok else 1)
+
+    method= selects the sigma estimator: "average_mr" (MRbar / d2, the
+    default) or "median_mr" (median MR / d4, robust to occasional spikes
+    in the moving range).
     """
+    if method not in ("average_mr", "median_mr"):
+        raise ValueError(
+            f'method must be "average_mr" or "median_mr", got {method!r}. '
+            'Example: sw.imr(df, value="x", method="median_mr")'
+        )
     s = as_series(data, value, "imr")
     if len(s) < 2:
         raise ValueError(
@@ -89,7 +99,10 @@ def imr(
     if limits is None:
         center = float(x.mean())
         mr_center = float(mr.mean())
-        sigma = mr_center / d2(2)
+        if method == "median_mr":
+            sigma = float(np.median(mr)) / d4(2)
+        else:
+            sigma = mr_center / d2(2)
         baseline = Baseline(
             chart="imr",
             stats={"i_center": center, "sigma_within": sigma, "mr_center": mr_center},
@@ -153,6 +166,7 @@ def imr(
         params={
             "value": value,
             "rules": rules,
+            "method": method,
             "limits": "frozen" if limits is not None else "fitted",
         },
         stats=stats,

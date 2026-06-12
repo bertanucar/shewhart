@@ -80,8 +80,9 @@ sw.report([r1, r2, r3], "weekly.html", title="Line 3 weekly")
   keyword with a full word (`value=`, `subgroup=`, `lsl=`, `rules=`).
 * On a DatetimeIndex, `subgroup=` also accepts a fixed time window such as
   `"15min"` or `"1H"`.
-* The full sigma-estimator menu (`method="rbar" | "sbar" | "pooled" |
-  "median_mr" | ...`) lands in 0.1.x; the aliases above are reserved now so
-  they never change later.
+* Sigma estimators are selected by name: `sw.imr(..., method="average_mr" |
+  "median_mr")`, `sw.xbar_r(..., method="rbar")`, `sw.xbar_s(...,
+  method="sbar" | "pooled")`. Estimator aliases, like all string aliases,
+  never change meaning.
 * No `**kwargs` anywhere public.
 * Errors teach: every exception ends with a corrected, runnable example.

@@ -89,6 +89,35 @@ def D4(n: int) -> float:
 
 
 @lru_cache(maxsize=None)
+def d4(n: int) -> float:
+    """Median of the range of n standard normal observations.
+
+    Used to unbias the *median* moving range: sigma = median(MR) / d4(2).
+    Not to be confused with the R-chart limit factor D4 (capital D).
+    For n = 2 the closed form is sqrt(2) * z_0.75.
+    """
+    _check_n(n)
+    if n != 2:
+        raise ValueError(
+            "d4(n) is implemented for n=2 only (median moving-range "
+            "estimation uses spans of 2)."
+        )
+    return math.sqrt(2.0) * norm.ppf(0.75)
+
+
+@lru_cache(maxsize=None)
+def B5(n: int) -> float:
+    """S-chart lower-limit factor from a known sigma: max(0, c4 - 3*sqrt(1-c4^2))."""
+    return max(0.0, c4(n) - 3.0 * math.sqrt(1.0 - c4(n) ** 2))
+
+
+@lru_cache(maxsize=None)
+def B6(n: int) -> float:
+    """S-chart upper-limit factor from a known sigma: c4 + 3*sqrt(1-c4^2)."""
+    return c4(n) + 3.0 * math.sqrt(1.0 - c4(n) ** 2)
+
+
+@lru_cache(maxsize=None)
 def B3(n: int) -> float:
     """S-chart lower-limit factor: max(0, 1 - 3*sqrt(1-c4^2)/c4)."""
     return max(0.0, 1.0 - 3.0 * math.sqrt(1.0 - c4(n) ** 2) / c4(n))

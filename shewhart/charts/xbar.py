@@ -18,7 +18,7 @@ from typing import Any, Mapping
 import numpy as np
 import pandas as pd
 
-from .._constants import A2, A3, B3, B4, D3, D4, c4, d2
+from .._constants import A2, A3, B3, B4, B5, B6, D3, D4, c4, d2
 from .._data import time_subgroups
 from .._registry import register
 from .._result import Baseline, Result, Signal, data_hash, utcnow
@@ -95,15 +95,27 @@ def _resolve(limits: Any, chart: str, keys: tuple[str, ...]) -> Baseline:
     )
 
 
+_METHODS = {"range": ("rbar",), "stdev": ("sbar", "pooled")}
+
+
 def _subgrouped(
     fname: str,
     data: Any,
     value: str | None,
     subgroup: str | None,
     rules: str | None,
+    method: str,
     limits: Any,
     spread_name: str,
 ) -> Result:
+    if method not in _METHODS[spread_name]:
+        options = " or ".join(repr(m) for m in _METHODS[spread_name])
+        raise ValueError(
+            f"{fname}() supports method={options}, got {method!r}."
+            + (' Pooled estimation lives on sw.xbar_s(method="pooled").'
+               if spread_name == "range" else "")
+        )
+
     labels, mat, n = _prepare(data, value, subgroup, fname)
     means = mat.mean(axis=1)
 
@@ -117,8 +129,15 @@ def _subgrouped(
     keys = ("xbar_center", "sigma_within", f"{spread_name[0]}_center", "n_sub")
     if limits is None:
         center = float(means.mean())
-        spread_center = float(spread.mean())
-        sigma = spread_center / to_sigma
+        if method == "pooled":
+            df = mat.shape[0] * (n - 1)
+            pooled_sd = float(np.sqrt(np.sum((n - 1) * spread**2) / df))
+            sigma = pooled_sd / c4(df + 1)
+            # display center such that lo/hi factors yield B5/B6 * sigma
+            spread_center = c4(n) * sigma
+        else:
+            spread_center = float(spread.mean())
+            sigma = spread_center / to_sigma
         baseline = Baseline(
             chart=fname,
             stats={
@@ -199,6 +218,7 @@ def _subgrouped(
             "value": value,
             "subgroup": subgroup,
             "rules": rules,
+            "method": method,
             "limits": "frozen" if limits is not None else "fitted",
         },
         stats=stats,
@@ -223,13 +243,14 @@ def xbar_r(
     value: str | None = None,
     subgroup: str | None = None,
     rules: str | None = "nelson",
+    method: str = "rbar",
     limits: Any = None,
 ) -> Result:
     """Xbar-R chart: subgroup means with limits from the average range.
 
         r = sw.xbar_r(df, value="torque", subgroup="batch", rules="nelson")
     """
-    return _subgrouped("xbar_r", data, value, subgroup, rules, limits, "range")
+    return _subgrouped("xbar_r", data, value, subgroup, rules, method, limits, "range")
 
 
 @register("xbar_s")
@@ -239,10 +260,15 @@ def xbar_s(
     value: str | None = None,
     subgroup: str | None = None,
     rules: str | None = "nelson",
+    method: str = "sbar",
     limits: Any = None,
 ) -> Result:
     """Xbar-S chart: subgroup means with limits from the average std deviation.
 
         r = sw.xbar_s(df, value="torque", subgroup="batch", rules="nelson")
+
+    method="pooled" estimates sigma from the pooled standard deviation
+    (exact degrees of freedom, unbiased via c4); the S-chart limits then
+    correspond to the B5/B6 factors.
     """
-    return _subgrouped("xbar_s", data, value, subgroup, rules, limits, "stdev")
+    return _subgrouped("xbar_s", data, value, subgroup, rules, method, limits, "stdev")
