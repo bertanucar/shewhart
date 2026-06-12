@@ -24,6 +24,7 @@ theme:
 nav:
   - Home: index.md
   - Guides:
+      - One-call SPC review: guides/review.md
       - Control charts in Python: guides/control-charts-in-python.md
       - Process capability (Cpk) in Python: guides/cpk-in-python.md
       - Nelson and Western Electric rules: guides/nelson-rules.md

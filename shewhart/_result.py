@@ -109,6 +109,12 @@ class Baseline:
     @classmethod
     def from_json(cls, text: str) -> "Baseline":
         raw = json.loads(text)
+        if int(raw.get("schema", 1)) > _SCHEMA:
+            raise ValueError(
+                f"This baseline uses schema {raw['schema']}, written by "
+                f"shewhart {raw.get('shewhart_version', '?')}; this version "
+                f"reads up to schema {_SCHEMA}. Upgrade shewhart to load it."
+            )
         return cls(
             chart=raw["chart"],
             stats=dict(raw["stats"]),

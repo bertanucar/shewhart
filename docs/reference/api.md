@@ -34,6 +34,7 @@ import shewhart as sw
 
 | Call | Analysis | Notes |
 |------|----------|-------|
+| `sw.review(data, value=\|defectives=\|defects=, subgroup=, size=, lsl=, usl=, target=, rules=, limits=)` | one-call review | selects the chart, checks assumptions, returns a [Review](#the-review-verdict) |
 | `sw.capability(data, value=, lsl=, usl=, target=, subgroup=, confidence=, dist=, transform=)` | Cp/Cpk/Pp/Ppk/Cpm with confidence intervals | non-normal via `dist=` (percentile method) or `transform="boxcox"` |
 | `sw.gauge_rr(...)` | ANOVA gauge R&R (AIAG) | *planned (0.2)* |
 | `sw.type1(...)` | Type 1 gauge study (Cg/Cgk) | *planned (0.2)* |
@@ -65,6 +66,40 @@ Reports over several analyses:
 ```python
 sw.report([r1, r2, r3], "weekly.html", title="Line 3 weekly")
 ```
+
+## The review verdict
+
+`sw.review()` returns a `Review`, not a `Result`: it composes a chart, the
+assumption checks, and (with specification limits) a capability study into
+one gate. The underlying `Result` objects stay reachable for drill-down:
+
+```python
+rv = sw.review(df, value="torque", lsl=9.95, usl=10.05)
+rv.ok            # True iff failures is empty - the gate
+rv.failures      # machine-readable causes, e.g. ("out_of_control",)
+rv.headline      # a short deterministic verdict line
+rv.chart         # the underlying chart Result
+rv.capability    # the capability Result, or None
+rv.checks        # tuple of Check(name, status, value, threshold, note)
+rv.baseline      # passthrough: rv.baseline.save("line3.json")
+rv.summary(); rv.plot(); rv.to_html(); rv.to_dict()
+```
+
+`rv.to_dict()` is the JSON verdict (schema 1): `ok`, `failures`, `headline`,
+`params` (the call echoed, with `limits` as `"fitted"` or `"frozen"`),
+`selection` (chart and reason), `control` (status, stats, signals with index
+labels), `capability` (always present; `status` `"not_assessed"` carries a
+reason code such as `no_spec_limits`, `not_in_control`, `unstable`),
+`checks`, `recommendations` (`code`, `message`, `call`), `baseline`, `meta`.
+Numeric fields are finite or null - the JSON never contains NaN.
+
+Two covenant rules for consumers:
+
+* The check set and every enum are **open**: minor versions may add checks
+  (which can tighten the gate) and enum values. Treat unknown values
+  conservatively, and pin the library version where bit-stable gates matter.
+* Fields are never removed or renamed, and `failures` is empty exactly when
+  `ok` is true.
 
 ## String aliases (stable forever)
 
