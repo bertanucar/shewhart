@@ -30,6 +30,7 @@ nav:
       - EWMA charts in Python: guides/ewma-chart-python.md
       - CUSUM charts in Python: guides/cusum-in-python.md
       - Laney p' charts in Python: guides/laney-p-chart.md
+      - Tolerance intervals in Python: guides/tolerance-intervals.md
       - SPC reports as a cron job: guides/spc-report-cron.md
   - Reference:
       - API and grammar: reference/api.md

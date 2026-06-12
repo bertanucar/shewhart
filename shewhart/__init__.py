@@ -20,6 +20,7 @@ from ._result import Baseline, Result, Signal
 from ._version import __version__
 from ._report import report
 from .capability import capability
+from .tolerance import tolerance_interval
 from .charts import (
     c_chart,
     cusum,
@@ -52,6 +53,7 @@ __all__ = [
     "cusum",
     "pareto",
     "capability",
+    "tolerance_interval",
     "chart",
     "available",
     "Result",

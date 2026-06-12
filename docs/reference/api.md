@@ -38,7 +38,7 @@ import shewhart as sw
 | `sw.gauge_rr(...)` | ANOVA gauge R&R (AIAG) | *planned (0.2)* |
 | `sw.type1(...)` | Type 1 gauge study (Cg/Cgk) | *planned (0.2)* |
 | `sw.attribute_agreement(...)` | attribute agreement (kappa) | *planned (0.2)* |
-| `sw.tolerance_interval(...)` | tolerance intervals | *planned (0.1.x)* |
+| `sw.tolerance_interval(data, value=, coverage=, confidence=, method=)` | tolerance intervals | normal (Howe k2) and nonparametric (Wilks) |
 | `sw.screen(...)` | fleet screening over many characteristics | *planned (0.3)* |
 | `sw.monitor(...)` | drift monitoring with chart semantics | *planned (0.3)* |
 
