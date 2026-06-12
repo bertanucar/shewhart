@@ -50,6 +50,25 @@ r = sw.capability(x, lsl=9.8, usl=10.8)
 * subgrouped data: `sw.capability(df, value=, subgroup=, ...)` uses the
   pooled standard deviation with exact degrees of freedom
 
+## Non-normal data
+
+Two routes, depending on what the customer expects:
+
+```python
+# percentile method (ISO 22514 style): fit a model, indices from quantiles
+r = sw.capability(x, lsl=0.5, usl=15.0, dist="lognormal")   # or "auto"
+r.stats["ppk"], r.meta["dist_selected"]
+
+# or transform data and specs together, then analyze on the normal scale
+r = sw.capability(x, lsl=0.5, usl=15.0, transform="boxcox")
+```
+
+The percentile method reports performance indices (Pp/Ppk) only: within
+sigma and normal-theory intervals are normal-model concepts and are
+deliberately omitted rather than printed with silent invalidity.
+`dist="auto"` fits lognormal, Weibull, gamma, and normal, picks by
+Anderson-Darling fit, and reports the comparison in `r.meta["dist_fit_ad"]`.
+
 ## Validation
 
 The mean and overall sigma reproduce NIST StRD certified values (datasets

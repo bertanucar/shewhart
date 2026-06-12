@@ -60,6 +60,147 @@ def _pooled(data: pd.DataFrame, value: str, subgroup: str):
     return math.sqrt(pooled_var), float(df)
 
 
+_DISTS = {
+    "lognormal": ("lognorm", {"floc": 0}),
+    "weibull": ("weibull_min", {"floc": 0}),
+    "gamma": ("gamma", {"floc": 0}),
+}
+
+
+def _ad_statistic(x: np.ndarray, cdf) -> float:
+    """Anderson-Darling A^2 for an arbitrary fitted CDF."""
+    n = len(x)
+    f = np.clip(cdf(np.sort(x)), 1e-12, 1.0 - 1e-12)
+    i = np.arange(1, n + 1)
+    return float(-n - np.mean((2 * i - 1) * (np.log(f) + np.log1p(-f[::-1]))))
+
+
+def _fit_dist(x: np.ndarray, dist: str):
+    """Fit one named distribution (or pick the best by A^2 for 'auto')."""
+    if (x <= 0).any() and dist != "auto":
+        raise ValueError(
+            f'capability(dist="{dist}") requires strictly positive data; '
+            f"found min = {x.min():g}. Shift the data or reconsider the model."
+        )
+
+    candidates = list(_DISTS) if dist == "auto" else [dist]
+    fits = {}
+    for name in candidates:
+        scipy_name, fixed = _DISTS[name]
+        frozen_cls = getattr(sps, scipy_name)
+        if (x <= 0).any():
+            continue
+        params = frozen_cls.fit(x, **fixed)
+        frozen = frozen_cls(*params)
+        fits[name] = (frozen, _ad_statistic(x, frozen.cdf))
+    if dist == "auto":
+        fits["normal"] = (
+            sps.norm(x.mean(), x.std(ddof=1)),
+            _ad_statistic(x, sps.norm(x.mean(), x.std(ddof=1)).cdf),
+        )
+    if not fits:
+        raise ValueError(
+            'capability(dist="auto") found no fittable model; the data must be '
+            "strictly positive for the non-normal candidates."
+        )
+
+    best = min(fits, key=lambda k: fits[k][1])
+    return best, fits[best][0], {k: round(v[1], 4) for k, v in fits.items()}
+
+
+def _percentile_indices(frozen, lsl, usl) -> dict[str, float]:
+    """Performance indices by the percentile (ISO 22514-style) method."""
+    q_lo, q_med, q_hi = frozen.ppf([0.00135, 0.5, 0.99865])
+    out = {"q_lower": float(q_lo), "q_median": float(q_med), "q_upper": float(q_hi)}
+    parts = []
+    if usl is not None:
+        parts.append((usl - q_med) / (q_hi - q_med))
+    if lsl is not None:
+        parts.append((q_med - lsl) / (q_med - q_lo))
+    if lsl is not None and usl is not None:
+        out["pp"] = (usl - lsl) / (q_hi - q_lo)
+    out["ppk"] = float(min(parts))
+    return out
+
+
+def _percentile_capability(data, *, value, lsl, usl, subgroup, dist) -> "Result":
+    if subgroup is not None:
+        raise ValueError(
+            "The percentile method describes overall performance; subgroup= "
+            "does not apply. Omit it, or use transform='boxcox' to stay in "
+            "the within/overall framework on a transformed scale."
+        )
+    s = as_series(data, value, "capability")
+    x = s.to_numpy()
+    if len(x) < 10:
+        raise ValueError(
+            f"capability(dist=...) needs at least 10 observations to fit a "
+            f"distribution, got {len(x)}; 30 or more is advisable."
+        )
+
+    best, frozen, ad_table = _fit_dist(x, dist)
+    stats: dict[str, float] = {"mean": float(x.mean())}
+    stats.update(_percentile_indices(frozen, lsl, usl))
+
+    out_of_spec = np.zeros(len(x), dtype=bool)
+    ppm_model = 0.0
+    if lsl is not None:
+        out_of_spec |= x < lsl
+        ppm_model += float(frozen.cdf(lsl))
+    if usl is not None:
+        out_of_spec |= x > usl
+        ppm_model += float(1.0 - frozen.cdf(usl))
+    stats["ppm_observed"] = float(out_of_spec.mean() * 1e6)
+    stats["ppm_overall"] = ppm_model * 1e6
+
+    table = pd.DataFrame({"value": x, "in_spec": ~out_of_spec}, index=s.index)
+    return Result(
+        method="capability",
+        params={
+            "value": value, "lsl": lsl, "usl": usl, "target": None,
+            "subgroup": None, "confidence": None,
+            "dist": dist, "transform": None, "rules": None,
+        },
+        stats=stats,
+        signals=(),
+        meta={
+            "n": len(x),
+            "version": __version__,
+            "input": data_hash(x),
+            "computed_at": utcnow(),
+            "source": f"percentile method, fitted {best}",
+            "dist_selected": best,
+            "dist_fit_ad": ad_table,
+        },
+        baseline=None,
+        _table=table,
+    )
+
+
+def _apply_boxcox(data, value, lsl, usl, target):
+    """Transform data and specification limits with one MLE lambda."""
+    s = as_series(data, value, "capability")
+    x = s.to_numpy()
+    specs = [v for v in (lsl, usl, target) if v is not None]
+    if (x <= 0).any() or any(v <= 0 for v in specs):
+        raise ValueError(
+            "transform='boxcox' requires strictly positive data and "
+            "specification limits."
+        )
+    transformed, lam = sps.boxcox(x)
+
+    def t(v):
+        if v is None:
+            return None
+        return math.log(v) if abs(lam) < 1e-12 else (v**lam - 1.0) / lam
+
+    if isinstance(data, pd.DataFrame):
+        data = data.assign(**{value: pd.Series(transformed, index=s.index)})
+    else:
+        data = pd.Series(transformed, index=s.index)
+    return data, t(lsl), t(usl), t(target), float(lam)
+
+
 def _cp_interval(cp: float, df: float, confidence: float) -> tuple[float, float]:
     a = (1.0 - confidence) / 2.0
     return (
@@ -95,11 +236,23 @@ def capability(
     target: float | None = None,
     subgroup: str | None = None,
     confidence: float = 0.95,
+    dist: str = "normal",
+    transform: str | None = None,
 ) -> Result:
     """Process capability study (Cp/Cpk, Pp/Ppk) with confidence intervals.
 
         r = sw.capability(df, value="dia", lsl=9.95, usl=10.05)
         r.stats["cpk"], r.stats["cpk_lci"], r.stats["cpk_uci"]
+
+    Non-normal data, two routes:
+
+    * ``dist="lognormal" | "weibull" | "gamma" | "auto"`` fits the model and
+      reports performance indices by the percentile method (ISO 22514
+      style). These describe overall performance; within-sigma Cp/Cpk and
+      the normal-theory confidence intervals do not apply and are omitted.
+    * ``transform="boxcox"`` transforms data and specification limits with
+      the same MLE lambda, then runs the normal analysis on the transformed
+      scale (indices and intervals are reported on that scale).
     """
     if lsl is None and usl is None:
         raise ValueError(
@@ -110,6 +263,32 @@ def capability(
         raise ValueError(f"lsl must be below usl, got lsl={lsl}, usl={usl}.")
     if not 0.5 < confidence < 1.0:
         raise ValueError(f"confidence must be in (0.5, 1), got {confidence}.")
+    if dist not in ("normal", "auto", *_DISTS):
+        options = ", ".join(["normal", "auto", *_DISTS])
+        raise ValueError(
+            f"dist must be one of {options}, got {dist!r}. "
+            'Example: sw.capability(x, lsl=1, usl=9, dist="lognormal")'
+        )
+    if transform not in (None, "boxcox"):
+        raise ValueError(
+            f"transform must be None or 'boxcox', got {transform!r}."
+        )
+    if transform is not None and dist != "normal":
+        raise ValueError(
+            "Choose either dist= (percentile method) or transform= (analysis "
+            "on the transformed scale), not both."
+        )
+
+    if dist != "normal":
+        return _percentile_capability(
+            data, value=value, lsl=lsl, usl=usl, subgroup=subgroup, dist=dist
+        )
+
+    boxcox_lambda = None
+    if transform == "boxcox":
+        data, lsl, usl, target, boxcox_lambda = _apply_boxcox(
+            data, value, lsl, usl, target
+        )
 
     if subgroup is not None:
         if not isinstance(data, pd.DataFrame):
@@ -218,6 +397,9 @@ def capability(
         + " at 5%"
     )
 
+    if boxcox_lambda is not None:
+        stats["boxcox_lambda"] = boxcox_lambda
+
     table = pd.DataFrame({"value": x, "in_spec": ~out_of_spec}, index=s.index)
     return Result(
         method="capability",
@@ -228,6 +410,8 @@ def capability(
             "target": target,
             "subgroup": subgroup,
             "confidence": confidence,
+            "dist": dist,
+            "transform": transform,
             "rules": None,
         },
         stats=stats,

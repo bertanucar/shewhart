@@ -34,7 +34,7 @@ import shewhart as sw
 
 | Call | Analysis | Notes |
 |------|----------|-------|
-| `sw.capability(data, value=, lsl=, usl=, target=, subgroup=, confidence=)` | Cp/Cpk/Pp/Ppk/Cpm with confidence intervals | within vs overall sigma done right |
+| `sw.capability(data, value=, lsl=, usl=, target=, subgroup=, confidence=, dist=, transform=)` | Cp/Cpk/Pp/Ppk/Cpm with confidence intervals | non-normal via `dist=` (percentile method) or `transform="boxcox"` |
 | `sw.gauge_rr(...)` | ANOVA gauge R&R (AIAG) | *planned (0.2)* |
 | `sw.type1(...)` | Type 1 gauge study (Cg/Cgk) | *planned (0.2)* |
 | `sw.attribute_agreement(...)` | attribute agreement (kappa) | *planned (0.2)* |
