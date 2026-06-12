@@ -2,73 +2,70 @@
 
 *For people building agents that touch process data.*
 
-Every day, somewhere, an agent is asked whether a process is stable. It
-writes three lines of pandas, draws two red lines, and answers with
-confidence:
+Ask an agent whether a process is stable and it will, with great confidence,
+write something like this:
 
 ```python
 ucl = data.mean() + 3 * data.std()
 lcl = data.mean() - 3 * data.std()
 ```
 
-The code runs. Nothing looks broken. Both of these are the problem.
+It runs. It plots. It is wrong twice.
 
-The calculation is wrong twice over. Control limits use the within-process
-sigma, estimated from successive differences, not the overall standard
-deviation. And limits are estimated once from a reference period, then
-frozen; they are not recomputed on whatever data arrived today. On a
-drifting process, `data.std()` swallows the drift, the limits inflate, and
-the chart goes blind at the exact moment it exists for.
+Control limits are built on the within-process sigma, estimated from
+successive differences, not on the overall standard deviation. And limits
+get fitted once, on a reference period, then frozen; you do not recompute
+them on whatever data showed up today. Do that on a drifting process and
+`data.std()` quietly swallows the drift, the limits balloon, and the chart
+goes blind at exactly the moment you bought it for.
 
-No exception is raised. The verdict sounds certain. The number it rests on
-is not a statistic. It is a sentence with digits in it.
+No exception. No warning. Just a confident number that happens to be
+fiction.
 
 ## The failure mode is confidence
 
-A human who hand-rolls a control chart writes the code once, and a colleague
-might catch it. An agent writes it fresh in every conversation, thousands of
-times a day, and discards it after running. No review. No version. No record
-of which formula produced the number that someone then acted on.
+When a human hand-rolls a control chart, the code gets written once, and
+there is at least a chance a colleague catches the bug. An agent writes it
+fresh, thousands of times a day, and throws it away after running. Nobody
+reviews code that lives for four seconds.
 
 Generated statistics do not fail by crashing. They fail by being believed.
 
-## Three ways to be confidently wrong
+## Three classics
 
 **The wrong sigma.** Overall standard deviation where within-process sigma
-belongs. The chart that results does not monitor the process; it monitors
+belongs. The chart that results does not monitor your process; it monitors
 its own complacency.
 
-**cumsum is not CUSUM.** A cumulative sum has no reference value, no reset
-at zero, no decision interval. It drifts with any nonzero mean. It is what
-gets generated when someone asks for a CUSUM chart, and it answers nothing.
+**cumsum is not CUSUM.** A cumulative sum has no reference value, no reset,
+no decision interval. It just wanders off with any nonzero mean. It is what
+you get when you ask for a CUSUM chart and nobody checks, and it answers
+nothing.
 
-**The naked point estimate.** A Cpk computed from five parts, reported as
-"1.10". The 95% interval on that number runs from 0.09 to 2.12. Omitting it
-is not a simplification. It is a different claim, made silently.
+**The naked Cpk.** Five parts, "Cpk = 1.10", case closed. The 95% interval
+on that number runs from 0.09 to 2.12. Leaving that out is not a
+simplification; it is a different claim, made quietly.
 
-## Correct is specific
+## None of this is hard. All of it is exact.
 
-None of this is deep mathematics. All of it is exact: bias-correction
-constants derived from order statistics, estimators that auditors check by
-name, the discipline of fitting limits once and judging new data against
-them, run rules as Nelson and Western Electric published them, not as the
-corpus half-remembers them. Twenty generated lines do not reliably contain
-any of it.
-
-And it is checkable. The same computation either reproduces NIST-certified
-reference values or it does not. There is no third state.
+Bias-correction constants derived from order statistics. Estimators that
+auditors check by name. Limits fitted once, then frozen. Run rules as
+Nelson and Western Electric actually published them, not as the training
+corpus half-remembers them. Twenty freshly generated lines do not reliably
+contain any of that. And there is a simple test: the code either reproduces
+NIST-certified reference values or it does not. There is no third state.
 
 ## The division of labor
 
-The conclusion is not that agents should keep away from process data. The
-conclusion is a boundary:
+Agents should not stay away from process data. They should stay away from
+the arithmetic.
 
 > **The agent interprets. Validated code calculates.**
 
-Language models are good at understanding what was asked, choosing the right
-analysis, and explaining a verdict in plain words. They are not calculators,
-and quality statistics is a domain where almost right and right are
-indistinguishable until the recall.
+Models are genuinely good at figuring out what was asked, picking the right
+analysis, and explaining a verdict in plain words. They are just not
+calculators. And quality statistics is a field where almost right and right
+look identical until the recall.
 
 ## What an accountable number looks like
 
@@ -81,30 +78,19 @@ indistinguishable until the recall.
 }
 ```
 
-Library version. Input hash. Timestamp. Named rules. Six months later, when
-someone asks where the number came from, this is the difference between an
-answer and a shrug.
+Library version, input hash, timestamp, named rules. Six months from now,
+when someone asks where that number came from, this is the difference
+between an answer and a shrug.
 
 A number you cannot recompute is an opinion.
 
-## Five questions before trusting an agent's statistics
-
-1. Computed by generated code, or by a versioned tool?
-2. Which sigma estimator, and is it named in the output?
-3. Limits frozen from a reference period, or improvised on today's data?
-4. Interval, or naked point estimate?
-5. Could you reproduce the number from the recorded inputs and version?
-
-If the answer to the first question is "generated code", the remaining four
-have no answers.
-
 ## The practical part
 
-shewhart is built to sit behind agents. `sw.review(...)` is the one-call
-entry point: it selects the right chart, checks the assumptions, and returns
-a structured verdict with full provenance; the agent never touches a
-formula. Every released number is reproduced against published reference
-values, including NIST-certified datasets, on every CI run.
+This is why shewhart is built the way it is. `sw.review(...)` is one call:
+it picks the chart, checks the assumptions, and returns a structured
+verdict with full provenance. The agent never touches a formula. Every
+released number is re-derived against published reference values,
+NIST-certified datasets included, on every CI run.
 
 Use it, or use something else that is validated. The principle outranks the
 package.
