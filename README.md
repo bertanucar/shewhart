@@ -1,5 +1,9 @@
 # shewhart
 
+[![CI](https://github.com/bertanucar/shewhart/actions/workflows/ci.yml/badge.svg)](https://github.com/bertanucar/shewhart/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/shewhart)](https://pypi.org/project/shewhart/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+
 Statistical process control for Python.
 
 Control charts with the standard run rules, process capability analysis, and
@@ -22,9 +26,15 @@ attempt to fix that, with a few specific goals:
 * an API that works headless, so a weekly control chart review can run as a
   cron job
 
+```
+pip install shewhart
+```
+
+Documentation: https://bertanucar.github.io/shewhart/
+
 ## Status
 
-Under active development, pre 0.1. Implemented and tested so far:
+Version 0.1.0 is on PyPI. Implemented and tested:
 
 * control charts: I-MR, Xbar-R, Xbar-S, p, np, c, u (stair-step limits for
   varying subgroup sizes), EWMA (exact and asymptotic limits), run chart
@@ -41,13 +51,6 @@ Under active development, pre 0.1. Implemented and tested so far:
 * a reference-case validation suite (tests/validation_cases.json), anchored
   externally: NIST StRD certified values (Michelso, NumAcc1) and the
   NIST/SEMATECH e-Handbook EWMA worked example are reproduced in CI
-
-The version on PyPI (0.0.1) predates most of this. Until 0.1 is released,
-install from source:
-
-```
-pip install git+https://github.com/bertanucar/shewhart
-```
 
 ## Usage
 
@@ -103,7 +106,6 @@ metadata (library version, input hash, timestamp).
 
 | Version | Scope |
 |---------|-------|
-| 0.1     | documentation site, PyPI release |
 | 0.1.x   | CUSUM, Laney p'/u', non-normal capability, tolerance intervals |
 | 0.2     | measurement systems analysis: ANOVA gauge R&R (crossed and nested), Type 1 studies, attribute agreement |
 | 0.3     | process screening across many characteristics, drift monitoring with control chart semantics |
