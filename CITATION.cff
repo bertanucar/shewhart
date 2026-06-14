@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+title: "shewhart: statistical process control for Python"
+message: "If you use this software, please cite it using these metadata."
+type: software
+authors:
+  - given-names: Bertan
+    family-names: Ucar
+    affiliation: Tsinghua University
+repository-code: "https://github.com/bertanucar/shewhart"
+url: "https://bertanucar.github.io/shewhart/"
+abstract: >-
+  A validated, pandas-native library for statistical process control:
+  control charts (I-MR, Xbar-R/S, p, np, c, u, Laney p'/u', EWMA, CUSUM)
+  with Nelson and Western Electric rules, process capability with
+  confidence intervals and non-normal methods, and tolerance intervals.
+  Results are checked against published reference values, including
+  NIST-certified datasets, in continuous integration.
+keywords:
+  - statistical process control
+  - control charts
+  - process capability
+  - quality engineering
+  - six sigma
+license: MIT
+version: 0.1.1
+date-released: "2026-06-13"
