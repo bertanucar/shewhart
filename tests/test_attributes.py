@@ -62,6 +62,17 @@ def test_np_chart_accepts_zero_d_array_size():
     assert zero_d.stats == scalar.stats
 
 
+def test_np_chart_hash_depends_on_size():
+    # size changes the limits and the baseline, so it must change provenance
+    df = pd.DataFrame({"d": DEFECTIVES})
+    a = sw.np_chart(df, defectives="d", size=50, rules="none")
+    b = sw.np_chart(df, defectives="d", size=100, rules="none")
+    assert a.stats["np_ucl"] != b.stats["np_ucl"]
+    assert a.meta["input"] != b.meta["input"]
+    again = sw.np_chart(df, defectives="d", size=50, rules="none")
+    assert a.meta["input"] == again.meta["input"]
+
+
 def test_c_chart_hand_computed_with_plain_list():
     r = sw.c_chart([3, 2, 4, 1, 3], rules="none")
     assert r.stats["c_center"] == pytest.approx(2.6)

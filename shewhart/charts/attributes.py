@@ -263,7 +263,8 @@ def np_chart(data: Any, *, defectives: str | None = None, size: Any = None,
         stats={"np_center": center, "np_lcl": float(lcl[0]), "np_ucl": float(ucl[0])},
         params={"defectives": defectives, "size": n0, "rules": rules,
                 "limits": "frozen" if limits is not None else "fitted"},
-        baseline=baseline, source=source, n_points=len(dv), hashed=dv,
+        baseline=baseline, source=source, n_points=len(dv),
+        hashed=np.vstack([dv, n]),
     )
 
 
