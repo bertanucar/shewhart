@@ -68,6 +68,9 @@ sigma and normal-theory intervals are normal-model concepts and are
 deliberately omitted rather than printed with silent invalidity.
 `dist="auto"` fits lognormal, Weibull, gamma, and normal, picks by
 Anderson-Darling fit, and reports the comparison in `r.meta["dist_fit_ad"]`.
+The dedicated guide,
+[non-normal capability](non-normal-capability-python.md), works a full
+example through both routes.
 
 ## Validation
 

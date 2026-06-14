@@ -52,6 +52,7 @@ selection conventions are documented.
 - [Statistics is not a language task](https://bertanucar.github.io/shewhart/agents/): why agents should call tools, not generate formulas
 - [Control charts in Python](https://bertanucar.github.io/shewhart/guides/control-charts-in-python/)
 - [Cpk with confidence intervals](https://bertanucar.github.io/shewhart/guides/cpk-in-python/)
+- [Non-normal capability](https://bertanucar.github.io/shewhart/guides/non-normal-capability-python/): Weibull/lognormal/gamma percentile method and Box-Cox
 - [Nelson rules](https://bertanucar.github.io/shewhart/guides/nelson-rules/)
 - [Laney p' charts](https://bertanucar.github.io/shewhart/guides/laney-p-chart/)
 - [SPC report as cron job](https://bertanucar.github.io/shewhart/guides/spc-report-cron/)
