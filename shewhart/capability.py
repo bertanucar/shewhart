@@ -346,8 +346,10 @@ def capability(
         stats["cp_lci"], stats["cp_uci"] = _cp_interval(cp, df_within, confidence)
         stats["pp_lci"], stats["pp_uci"] = _cp_interval(pp, df_overall, confidence)
         if target is not None:
-            msd = float(np.sum((x - target) ** 2) / (n - 1))
-            stats["cpm"] = span / (6.0 * math.sqrt(msd))
+            # Cpm uses tau^2 = sigma^2 + (mean - target)^2 (Montgomery eq. 8.13,
+            # Chan-Cheng-Spiring 1988), estimated with the overall sample sigma.
+            tau = math.sqrt(sigma_overall**2 + (mean - target) ** 2)
+            stats["cpm"] = span / (6.0 * tau)
 
     cpk = min(v for v in (cpu, cpl) if v is not None)
     ppk_parts = [

@@ -48,9 +48,15 @@ def test_one_sided_spec():
 
 
 def test_cpm_with_target():
+    # X is off target (mean 11.6 vs T 11.0), so this distinguishes the
+    # Montgomery estimator tau^2 = s^2 + (xbar - T)^2 from sum((x-T)^2)/(n-1).
     r = sw.capability(X, lsl=6, usl=16, target=11.0)
-    msd = sum((v - 11.0) ** 2 for v in X) / 4
-    assert r.stats["cpm"] == pytest.approx(10 / (6 * math.sqrt(msd)))
+    tau = math.sqrt(np.var(X, ddof=1) + (np.mean(X) - 11.0) ** 2)
+    assert r.stats["cpm"] == pytest.approx(10 / (6 * tau))
+    # on perfectly centered data Cpm collapses to Pp
+    centered = [9.0, 11.0, 10.0, 12.0, 8.0]  # mean 10.0
+    rc = sw.capability(centered, lsl=6, usl=16, target=10.0)
+    assert rc.stats["cpm"] == pytest.approx(rc.stats["pp"])
 
 
 def test_ppm_keys():
