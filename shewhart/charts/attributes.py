@@ -76,7 +76,7 @@ def _sizes(data: Any, size: Any, index, k: int, fname: str, integral: bool = Tru
                 f"Columns: {list(data.columns) if isinstance(data, pd.DataFrame) else 'n/a'}"
             )
         arr = data[size].loc[index].to_numpy("float64")
-    elif np.isscalar(size):
+    elif np.ndim(size) == 0:  # Python scalar or 0-d array: one constant size
         arr = np.full(k, float(size))
     else:
         arr = np.asarray(size, dtype="float64")

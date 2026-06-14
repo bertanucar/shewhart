@@ -54,6 +54,14 @@ def test_np_chart_hand_computed_and_constant_n_required():
         sw.np_chart(df, defectives="d", size=[50, 50, 50, 50, 60])
 
 
+def test_np_chart_accepts_zero_d_array_size():
+    # a 0-d numpy array is a constant, like a Python scalar
+    df = pd.DataFrame({"d": DEFECTIVES})
+    scalar = sw.np_chart(df, defectives="d", size=50, rules="none")
+    zero_d = sw.np_chart(df, defectives="d", size=np.array(50), rules="none")
+    assert zero_d.stats == scalar.stats
+
+
 def test_c_chart_hand_computed_with_plain_list():
     r = sw.c_chart([3, 2, 4, 1, 3], rules="none")
     assert r.stats["c_center"] == pytest.approx(2.6)
