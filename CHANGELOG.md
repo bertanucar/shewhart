@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+* `capability(..., target=)`: Cpm now uses the standard estimator
+  `tau^2 = sigma^2 + (mean - target)^2` (Montgomery eq. 8.13). The previous
+  `sum((x - target)^2)/(n - 1)` biased Cpm low for off-target processes.
+  Values agree on centered data; recompute Cpm if you depend on it.
+* `np_chart`: the provenance hash now includes the subgroup size, so runs
+  at different sizes no longer collide on one input hash.
+* `np_chart`, `p_chart`, `u_chart`: a 0-d numpy array is accepted as a
+  constant size, like a Python scalar.
+
 ## 0.1.1
 
 ### Added
