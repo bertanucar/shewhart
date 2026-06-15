@@ -45,6 +45,8 @@ def render(result, ax=None):
         return _render_cusum(result, ax)
     if result.method in _SINGLE:
         return _render_single(result, ax)
+    if result.method == "xbar_s" and result.meta.get("variable_sizes"):
+        return _render_variable_xbar_s(result, ax)
     try:
         title, top, bottom = _SPECS[result.method]
     except KeyError:
@@ -193,13 +195,50 @@ def _render_single(result, ax=None):
     return ax
 
 
+def _render_variable_xbar_s(result, ax=None):
+    """Stair-step Xbar-S: limits vary per subgroup, so they come from the
+    table columns rather than scalar stats."""
+    import matplotlib.pyplot as plt
+
+    if ax is None:
+        _, axes = plt.subplots(
+            2, 1, sharex=True, figsize=(9, 5.5), height_ratios=[2, 1]
+        )
+    else:
+        axes = ax
+
+    t = result.table
+    xs = range(len(t))
+    panels = [
+        (axes[0], "mean", "mean_signal", "subgroup mean",
+         "mean_lcl", "mean_ucl", result.stats["xbar_center"]),
+        (axes[1], "stdev", "stdev_signal", "subgroup stdev",
+         "stdev_lcl", "stdev_ucl", None),
+    ]
+    for a, col, sigcol, label, lcl, ucl, center in panels:
+        values = t[col].to_numpy()
+        a.plot(xs, values, marker="o", ms=4, lw=1, color="#1f77b4")
+        if center is not None:
+            a.axhline(center, color="#444444", lw=1)
+        a.step(xs, t[ucl].to_numpy(), where="mid", color="#d62728", lw=1, ls="--")
+        a.step(xs, t[lcl].to_numpy(), where="mid", color="#d62728", lw=1, ls="--")
+        flagged = t[sigcol].to_numpy()
+        a.plot([i for i in xs if flagged[i]], values[flagged],
+               "o", ms=7, mfc="none", mec="#d62728", mew=1.6, ls="")
+        a.set_ylabel(label)
+    axes[0].set_title(f"Xbar-S chart - {result.meta.get('source', '')}")
+    axes[1].set_xlabel("observation")
+    return axes
+
+
 def _panel(a, table, stats, spec):
     col, sigcol, label, (center, lcl, ucl) = spec
     values = table[col].to_numpy()
     xs = range(len(values))
 
     a.plot(xs, values, marker="o", ms=4, lw=1, color="#1f77b4")
-    a.axhline(stats[center], color="#444444", lw=1)
+    if center in stats:
+        a.axhline(stats[center], color="#444444", lw=1)
     for key in (lcl, ucl):
         if key in stats:
             a.axhline(stats[key], color="#d62728", lw=1, ls="--")

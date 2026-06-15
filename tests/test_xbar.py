@@ -44,11 +44,82 @@ def test_shifted_subgroup_triggers_nelson_1():
     assert any(s.rule == "nelson_1" and s.chart == "xbar" for s in r.signals)
 
 
-def test_unequal_subgroup_sizes_teach():
+def test_xbar_r_rejects_unequal_sizes_and_points_to_xbar_s():
     df = make_df(CLEAN)
     df = pd.concat([df, pd.DataFrame([{"x": 11.0, "g": "b0"}])], ignore_index=True)
     with pytest.raises(ValueError, match="equal subgroup sizes"):
         sw.xbar_r(df, value="x", subgroup="g")
+
+
+# Independent hand reference for variable-size Xbar-S (see derivation in the
+# variable-sizes guide): pooled sigma over n=3,4,5 subgroups.
+VAR_DF = pd.DataFrame(
+    [{"g": lab, "x": float(v)}
+     for lab, vals in [("A", [10, 12, 11]),
+                       ("B", [9, 11, 10, 12]),
+                       ("C", [11, 10, 12, 13, 9])]
+     for v in vals]
+)
+
+
+def test_xbar_s_variable_sizes_hand_computed():
+    r = sw.xbar_s(VAR_DF, value="x", subgroup="g", rules="none")
+    # pooled sd = sqrt(17/9), sigma = pooled_sd / c4(10), grand mean weighted
+    pooled_sd = (17 / 9) ** 0.5
+    sigma = pooled_sd / c.c4(10)
+    assert r.stats["sigma_within"] == pytest.approx(sigma)
+    assert r.stats["xbar_center"] == pytest.approx(130 / 12)
+    assert "xbar_ucl" not in r.stats  # limits vary, so no scalar keys
+    assert r.meta["variable_sizes"] is True
+
+    t = r.table
+    for lab, n in zip(["A", "B", "C"], [3, 4, 5]):
+        row = t.loc[lab]
+        assert row["mean_ucl"] == pytest.approx(130 / 12 + 3 * sigma / n**0.5)
+        assert row["mean_lcl"] == pytest.approx(130 / 12 - 3 * sigma / n**0.5)
+        assert row["stdev_ucl"] == pytest.approx(c.B6(n) * sigma)
+        assert row["stdev_lcl"] == pytest.approx(c.B5(n) * sigma)
+
+
+def test_xbar_s_variable_baseline_roundtrips(tmp_path):
+    fit = sw.xbar_s(VAR_DF, value="x", subgroup="g")
+    path = tmp_path / "var.json"
+    fit.baseline.save(path)
+    new = pd.DataFrame(
+        [{"g": "X", "x": v} for v in [10, 11, 12]]
+        + [{"g": "Y", "x": v} for v in [9, 10, 11, 12, 13]]
+    )
+    r = sw.xbar_s(new, value="x", subgroup="g", limits=path)
+    assert "Phase II" in r.meta["source"]
+    assert r.stats["xbar_center"] == pytest.approx(fit.stats["xbar_center"])
+    assert r.table["mean_ucl"].iloc[0] == pytest.approx(
+        fit.stats["xbar_center"] + 3 * fit.stats["sigma_within"] / 3**0.5
+    )
+
+
+def test_xbar_s_variable_sizes_render(tmp_path):
+    import matplotlib
+
+    matplotlib.use("Agg")
+    r = sw.xbar_s(VAR_DF, value="x", subgroup="g")
+    r.plot()  # stair-step renderer must not need scalar limit keys
+    out = r.to_html(tmp_path / "var.html")
+    assert out.read_text(encoding="utf-8").startswith("<!DOCTYPE html>")
+
+
+def test_xbar_s_variable_echoes_method(tmp_path):
+    r = sw.xbar_s(VAR_DF, value="x", subgroup="g", method="sbar")
+    assert r.params["method"] == "sbar"  # faithful echo
+    assert "pooled" in r.meta["source"]  # actual estimator disclosed
+
+
+def test_xbar_s_variable_sizes_flags_a_wide_subgroup(tmp_path):
+    # judge a wide subgroup against frozen limits, so it cannot inflate its own sigma
+    path = tmp_path / "var.json"
+    sw.xbar_s(VAR_DF, value="x", subgroup="g").baseline.save(path)
+    new = pd.DataFrame([{"g": "D", "x": v} for v in [2, 20, 5, 18]])
+    r = sw.xbar_s(new, value="x", subgroup="g", limits=path)
+    assert any(s.chart == "s" and s.rule == "beyond_limits" for s in r.signals)
 
 
 def test_missing_subgroup_arg_teaches():
