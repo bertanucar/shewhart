@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Added
+
+* `xbar_s` now accepts variable subgroup sizes. Sigma is estimated from the
+  pooled within-subgroup variance and each subgroup gets its own stair-step
+  limits (per-point limits in the result table; scalar limit keys are absent
+  from `stats` when sizes vary). `xbar_r` still requires equal sizes.
+
 ### Fixed
 
 * `capability(..., target=)`: Cpm now uses the standard estimator

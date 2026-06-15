@@ -67,9 +67,25 @@ sys.exit(0 if r.ok else 1)
 | one measurement per period | `sw.imr` |
 | n measurements per subgroup, n <= 8 or so | `sw.xbar_r` |
 | larger subgroups | `sw.xbar_s` |
+| subgroups of differing sizes | `sw.xbar_s` (stair-step limits) |
 | defective units out of n inspected | `sw.p_chart` (varying n) or `sw.np_chart` (constant n) |
 | defect counts per unit of opportunity | `sw.c_chart` (constant) or `sw.u_chart` (varying) |
 | small sustained shifts matter | `sw.ewma` |
+
+## Variable subgroup sizes
+
+When subgroups have different sizes (a common case once you subgroup by a
+time window), `sw.xbar_s` estimates sigma once from the pooled
+within-subgroup variance and draws each subgroup's limits for its own size:
+
+```python
+r = sw.xbar_s(df, value="torque", subgroup="shift")
+r.table[["n", "mean_lcl", "mean_ucl", "stdev_lcl", "stdev_ucl"]]
+```
+
+The limits become a stair-step, so the scalar limit keys are absent from
+`r.stats` (they live per row in the table). `sw.xbar_r` still needs equal
+sizes; ranges and the average-range estimator assume a constant n.
 
 ## Where the numbers come from
 
