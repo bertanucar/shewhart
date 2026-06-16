@@ -26,6 +26,7 @@ conventions, not new statistics.
 | measurements, no subgroups | `review(df, value="x")` | I-MR |
 | measurements in subgroups of 2-8 | `review(df, value="x", subgroup="batch")` | Xbar-R |
 | measurements in subgroups of 9+ | same | Xbar-S |
+| measurements in subgroups of differing sizes | same | Xbar-S (stair-step) |
 | defective units + inspection size | `review(df, defectives="rej", size="insp")` | np (constant size) or p (varying) |
 | ... with over/underdispersion | same | Laney p' (automatic) |
 | defect counts + inspection size | `review(df, defects="dents", size="area")` | u, or Laney u' (automatic) |

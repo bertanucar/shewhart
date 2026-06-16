@@ -8,6 +8,8 @@
   pooled within-subgroup variance and each subgroup gets its own stair-step
   limits (per-point limits in the result table; scalar limit keys are absent
   from `stats` when sizes vary). `xbar_r` still requires equal sizes.
+* `review()` routes measurements in variable-size subgroups to `xbar_s`
+  instead of raising; previously it required equal sizes.
 
 ### Fixed
 
