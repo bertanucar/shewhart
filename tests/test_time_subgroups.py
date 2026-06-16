@@ -37,3 +37,37 @@ def test_non_datetime_index_teaches():
     df = pd.DataFrame({"torque": [1.0, 2.0, 3.0, 4.0]})
     with pytest.raises(ValueError, match="naming a column"):
         sw.xbar_r(df, value="torque", subgroup="1h")
+
+
+def daily_df(days=90, seed=1):
+    idx = pd.date_range("2026-01-01", periods=days, freq="D")
+    rng = np.random.default_rng(seed)
+    return pd.DataFrame({"x": rng.normal(50, 2, days)}, index=idx)
+
+
+def test_weekly_calendar_window_groups_by_week():
+    df = daily_df()
+    r = sw.xbar_s(df, value="x", subgroup="W")
+    # weeks have differing sizes (a partial first week), so it is variable
+    assert r.meta["variable_sizes"] is True
+    assert r.table["n"].max() == 7
+    # labels are week-start timestamps
+    assert (r.table.index == pd.DatetimeIndex(r.table.index).normalize()).all()
+
+
+def test_monthly_calendar_window_groups_by_month():
+    df = daily_df(days=90)
+    r = sw.xbar_s(df, value="x", subgroup="ME")
+    assert r.meta["n"] == 3
+    assert r.table["n"].tolist() == [31, 28, 31]
+
+
+def test_review_routes_weekly_to_xbar_s():
+    r = sw.review(daily_df(), value="x", subgroup="W")
+    assert r.selection["chart"] == "xbar_s"
+
+
+def test_unusable_window_teaches():
+    df = daily_df()
+    with pytest.raises(ValueError, match="time window"):
+        sw.xbar_s(df, value="x", subgroup="1.5W")

@@ -9,10 +9,12 @@ import pandas as pd
 
 
 def time_subgroups(data: Any, subgroup: str | None) -> pd.Series | None:
-    """Resolve subgroup= given as a time window like "15min" or "1H".
+    """Resolve subgroup= given as a time window.
 
-    Returns a label Series aligned to the DataFrame, or None if subgroup=
-    does not look like a time-window specification.
+    Fixed windows ("15min", "1h", "1D") label each row by the floored
+    timestamp; calendar windows ("W", "ME", "QE") label it by the start of
+    its period. Returns a label Series aligned to the DataFrame, or None if
+    subgroup= does not look like a time-window specification.
     """
     if (
         not isinstance(data, pd.DataFrame)
@@ -23,17 +25,23 @@ def time_subgroups(data: Any, subgroup: str | None) -> pd.Series | None:
     if not isinstance(data.index, pd.DatetimeIndex):
         return None
     try:
-        pd.tseries.frequencies.to_offset(subgroup)
+        offset = pd.tseries.frequencies.to_offset(subgroup)
     except ValueError:
         return None
+
+    index = data.index
     try:
-        return pd.Series(data.index.floor(subgroup), index=data.index)
+        labels = index.floor(offset)  # fixed windows
     except ValueError:
-        raise ValueError(
-            f"subgroup={subgroup!r} is not a fixed time window. Use fixed "
-            'windows like "15min", "1H", or "1D"; calendar frequencies like '
-            '"W" or "M" are not supported yet.'
-        ) from None
+        try:
+            labels = index.to_period(offset).start_time  # calendar windows
+        except (ValueError, AttributeError):
+            raise ValueError(
+                f"subgroup={subgroup!r} has no usable time window. Use a "
+                'fixed window like "15min", "1h", "1D", or a calendar window '
+                'like "W", "ME", or "QE".'
+            ) from None
+    return pd.Series(labels, index=index)
 
 
 def as_series(data: Any, value: str | None, fname: str) -> pd.Series:
