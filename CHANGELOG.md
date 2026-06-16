@@ -10,6 +10,9 @@
   from `stats` when sizes vary). `xbar_r` still requires equal sizes.
 * `review()` routes measurements in variable-size subgroups to `xbar_s`
   instead of raising; previously it required equal sizes.
+* Time-window subgrouping accepts calendar windows (`"W"`, `"ME"`, `"QE"`)
+  on a DatetimeIndex, not only fixed windows like `"1h"` or `"1D"`. Weeks and
+  months produce differing subgroup sizes, charted as stair-step limits.
 
 ### Fixed
 

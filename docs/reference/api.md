@@ -113,8 +113,10 @@ Two covenant rules for consumers:
 
 * Data is always the first positional argument; every column or option is a
   keyword with a full word (`value=`, `subgroup=`, `lsl=`, `rules=`).
-* On a DatetimeIndex, `subgroup=` also accepts a fixed time window such as
-  `"15min"` or `"1H"`.
+* On a DatetimeIndex, `subgroup=` also accepts a time window: a fixed one
+  such as `"15min"` or `"1h"`, or a calendar one such as `"W"`, `"ME"`, or
+  `"QE"`. Calendar windows produce subgroups of differing sizes, which
+  `xbar_s` and `review()` handle with stair-step limits.
 * Sigma estimators are selected by name: `sw.imr(..., method="average_mr" |
   "median_mr")`, `sw.xbar_r(..., method="rbar")`, `sw.xbar_s(...,
   method="sbar" | "pooled")`. Estimator aliases, like all string aliases,

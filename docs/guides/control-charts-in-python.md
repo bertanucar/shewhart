@@ -87,6 +87,14 @@ The limits become a stair-step, so the scalar limit keys are absent from
 `r.stats` (they live per row in the table). `sw.xbar_r` still needs equal
 sizes; ranges and the average-range estimator assume a constant n.
 
+Calendar windows are the common source of differing sizes. On a
+DatetimeIndex, `subgroup="W"` (or `"ME"`, `"QE"`) groups each row into its
+week or month, and the weeks rarely hold the same number of points:
+
+```python
+r = sw.xbar_s(df, value="torque", subgroup="W")  # one subgroup per week
+```
+
 ## Where the numbers come from
 
 Constants like d2 and the limit factors are computed from their defining
