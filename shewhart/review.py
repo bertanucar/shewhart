@@ -225,7 +225,10 @@ def _load_baseline(limits: Any) -> Baseline:
 
 
 def _subgroup_size(data: Any, value: str, subgroup: Any) -> int:
-    """The unique subgroup size, with review-attributed teaching errors."""
+    """The unique subgroup size, or 0 when sizes vary (routed to xbar_s).
+
+    Teaching errors stay review-attributed.
+    """
     time_labels = time_subgroups(data, subgroup)
     if time_labels is not None:
         labels = time_labels
@@ -246,11 +249,7 @@ def _subgroup_size(data: Any, value: str, subgroup: Any) -> int:
             f"subgroup label) is missing."
         )
     if len(sizes) > 1:
-        raise ValueError(
-            f"review(): subgroup sizes vary ({sizes}); the 0.1 xbar charts "
-            "need equal sizes. Drop incomplete subgroups, or chart the "
-            "subgroup means: sw.review(df_means, value=...)."
-        )
+        return 0  # variable sizes -> xbar_s (stair-step limits)
     return int(sizes[0])
 
 
@@ -387,7 +386,10 @@ def review(
             chart = _run_chart("imr", data, value=value, rules=rules)
         else:
             n_sub = _subgroup_size(data, value, subgroup)
-            if n_sub == 1:
+            if n_sub == 0:
+                selection = {"chart": "xbar_s", "reason": "variable subgroup sizes -> Xbar-S"}
+                chart = _run_chart("xbar_s", data, value=value, subgroup=subgroup, rules=rules)
+            elif n_sub == 1:
                 selection = {"chart": "imr", "reason": "subgroups of size 1 are individuals"}
                 chart = _run_chart("imr", data, value=value, rules=rules)
             elif n_sub < _XBAR_S_FROM:

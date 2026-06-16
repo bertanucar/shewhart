@@ -42,6 +42,23 @@ def test_size_one_subgroups_fall_back_to_imr():
     assert rv.selection["chart"] == "imr"
 
 
+def test_variable_subgroup_sizes_route_to_xbar_s():
+    rng = np.random.default_rng(5)
+    rows = []
+    for i in range(20):
+        for v in rng.normal(50, 2, int(rng.integers(3, 8))):
+            rows.append({"b": f"g{i:02d}", "x": v})
+    df = pd.DataFrame(rows)
+    rv = sw.review(df, value="x", subgroup="b")
+    assert rv.selection["chart"] == "xbar_s"
+    assert "variable" in rv.selection["reason"]
+    json.dumps(rv.to_dict(), allow_nan=False)
+    # the frozen baseline drives Phase II monitoring
+    base = rv.baseline
+    rv2 = sw.review(df, value="x", subgroup="b", limits=base)
+    assert rv2.selection["chart"] == "xbar_s" and rv2.params["limits"] == "frozen"
+
+
 def test_attribute_routing_p_np_c_u():
     rng = np.random.default_rng(3)
     k = 30
@@ -281,9 +298,6 @@ def test_branch_validation_teaches():
     with pytest.raises(ValueError, match="zone tests"):
         sw.review(pd.DataFrame({"r": [1, 2], "n": [5, 5]}), defectives="r",
                   size="n", rules="western_electric")
-    with pytest.raises(ValueError, match="subgroup sizes vary"):
-        sw.review(pd.DataFrame({"x": [1.0] * 7 + [2.0] * 8, "b": [1] * 7 + [2] * 8}),
-                  value="x", subgroup="b")
     with pytest.raises(ValueError, match="lsl must be below usl"):
         sw.review(pd.Series(QUIET), lsl=10, usl=9)
     with pytest.raises(TypeError, match="chart name"):
