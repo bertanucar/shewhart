@@ -11,3 +11,8 @@ build/
 venv/
 .DS_Store
 site/
+
+# artifacts the example scripts write when run from the repo root
+/torque_baseline.json
+/verdict.json
+/weekly_report.html
