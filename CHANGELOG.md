@@ -4,6 +4,11 @@
 
 ### Added
 
+* An `examples/` directory with runnable end-to-end scripts (fit-freeze-
+  monitor, a weekly HTML report, and one-call triage with `review()`). They
+  generate their own data and run on every CI build, so they stay working.
+
+
 * `xbar_s` now accepts variable subgroup sizes. Sigma is estimated from the
   pooled within-subgroup variance and each subgroup gets its own stair-step
   limits (per-point limits in the result table; scalar limit keys are absent

@@ -32,6 +32,8 @@ pip install shewhart
 
 Documentation: https://bertanucar.github.io/shewhart/
 
+Runnable examples: [examples/](examples/)
+
 ## Status
 
 Version 0.1.1 is on PyPI. Implemented and tested:
